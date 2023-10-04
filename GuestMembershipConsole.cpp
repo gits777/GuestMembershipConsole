@@ -8,6 +8,7 @@
 #include <fstream>
 #include <vector>
 #include <sstream>
+#include <algorithm>
 
 enum status
 {
@@ -400,6 +401,7 @@ void vexport()
 
 std::string getUserInput()
 {
+    std::cout << "\nPLEASE TYPE YOUR SELECTION: ";
     std::string input = "";
     std::cin >> input;
     std::transform(input.begin(), input.end(), input.begin(), ::toupper);
@@ -430,43 +432,52 @@ void propertiesMenuAdd()
     std::cout << "\nPROPERTIES MENU ADD";
     std::cout << "\n    PROPERTY";
     std::cout << "\n    AGENCY";
-    std::cout << "\nPLEASE TYPE YOUR SELECTION"
+    std::cout << "\nPLEASE TYPE YOUR SELECTION: ";
     std::string input = getUserInput();
     int selection = 10;
 }
 
-//Generic menu system, tell how many options you have
+//Generic menu system, tell how many options you have and pass whole string seperatted by commas
 int menuSystem(int option, std::string x)
 {
     //while loop
     std::string input = "";
+    std::string word = "";
     int loopCount = 0;
     int selection = 0;
-    bool match = FALSE;
-    while (match == FALSE)
+    bool match = false;
+    while (match == false)
     {
+        std::stringstream ss(x);
         int loopCount = 0;
-        while (loopCount < option)
+        //print the title line
+        std::getline(ss, word, ',');
+        std::cout << "\n" << word;
+        //break string x up using stringstream and print it out
+        while (std::getline(ss, word, ','))
         {
-            //break string x up using stringstream and print it out
-            loopCount++;
+            std::cout << "\n    " << word;
         }
+        loopCount = 0;
         //get user input
         input = getUserInput();
-        loopCount = 0;
-        while (loopCount < option)
+        std::stringstream ss(x);
+        //scrap the title line
+        std::getline(ss, word, ',');
+        //break string x up again using stringstream and check if input matches any
+        while (std::getline(ss, word, ','))
         {
-            //break string x up again using stringstream and check if input matches any
-            if (input == stringstream)
+            
+            if (input == word)
             {
-                match = TRUE;
+                match = true;
                 selection = loopCount;
             }
             loopCount++;
         }
-        if (match == FALSE)
+        if (match == false)
         {
-            invalidSlelection();
+            invalidSelection();
         }
     }
     
