@@ -398,6 +398,14 @@ void vexport()
     std::cout << "export";
 }
 
+std::string getUserInput()
+{
+    std::string input = "";
+    std::cin >> input;
+    std::transform(input.begin(), input.end(), input.begin(), ::toupper);
+    return input;
+}
+
 std::string printPropertiesMenu()
 {
     std::cout << "\n\nPROPERTIES MENU";
@@ -415,6 +423,54 @@ std::string printPropertiesMenu()
 void invalidSelection()
 {
     std::cout << "\n\n!! INVALID SELECTION !!\n";
+}
+
+void propertiesMenuAdd()
+{
+    std::cout << "\nPROPERTIES MENU ADD";
+    std::cout << "\n    PROPERTY";
+    std::cout << "\n    AGENCY";
+    std::cout << "\nPLEASE TYPE YOUR SELECTION"
+    std::string input = getUserInput();
+    int selection = 10;
+}
+
+//Generic menu system, tell how many options you have
+int menuSystem(int option, std::string x)
+{
+    //while loop
+    std::string input = "";
+    int loopCount = 0;
+    int selection = 0;
+    bool match = FALSE;
+    while (match == FALSE)
+    {
+        int loopCount = 0;
+        while (loopCount < option)
+        {
+            //break string x up using stringstream and print it out
+            loopCount++;
+        }
+        //get user input
+        input = getUserInput();
+        loopCount = 0;
+        while (loopCount < option)
+        {
+            //break string x up again using stringstream and check if input matches any
+            if (input == stringstream)
+            {
+                match = TRUE;
+                selection = loopCount;
+            }
+            loopCount++;
+        }
+        if (match == FALSE)
+        {
+            invalidSlelection();
+        }
+    }
+    
+    return selection;
 }
 
 void propertiesMenu()
@@ -442,7 +498,7 @@ void propertiesMenu()
         switch (selection)
         {
         case 0:
-
+                propertiesMenuAdd();
             break;
         case 1:
 
