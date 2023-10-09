@@ -10,6 +10,16 @@
 #include <sstream>
 #include <algorithm>
 
+std::string agencies[9] = {"BALD HEAD ISLAND SERVICES","BARBARA ADAMS/HOMES ON BHI","BHI RENTALS/ROD HYSON","BHI VACATIONS","EDIE SURRATT","INTRACOASTAL VACATION RENTALS","ITRIP NC BEACHES","VRBO & OTHERS","Wendy Wilmot Properties (WWP)"};
+
+enum upperMenu
+{
+    importing = 0,
+    process = 1,
+    exporting = 2,
+    properties = 3,
+    quit = 19
+}
 enum status
 {
     pending = 0,
@@ -220,31 +230,35 @@ void member::setPropertyID(int a)
 class property
 {
 private:
-    int memberNumber;
-    int timesRented;
-    int bedrooms;
-    int id;
-    int price;
-    int paid;
-    bool hasPaid;
-    bool rentalProgram;
-    bool isUnlimited;
-    std::string propertyName;
-    std::string agency;
+    std::string memberNumber = "";
+    int timesRented = 0;
+    int bedrooms = 0;
+    int guests = 0;
+    int id = 0;
+    int price = 0;
+    int paid = 0;
+    bool hasPaid = false;
+    bool rentalProgram = false;
+    bool isUnlimited = false;
+    std::string propertyName = "";
+    int agency = 0;
+    std::string address = "";
 private:
-    int getMemberNumber();
+    std::string getMemberNumber();
     int getTimesRented();
     int getBedrooms();
     int getID();
     int getPrice();
     int getPaid();
     int getOwed();
+    int getGuests();
     bool getHasPaid();
     bool getRentalProgram();
     bool getIsUnlimited();
     std::string getPropertyName();
-    std::string getAgency();
-    void setMemberNumber(int a);
+    int getAgency();
+    std::string getAddress();
+    void setMemberNumber(std::string a);
     void setTimesRented(int a);
     void addTimesRented();
     void setBedrooms(int a);
@@ -252,11 +266,13 @@ private:
     void setPrice(int a);
     void setPaid(int a);
     void addPaid(int a);
+    void setGuests(int a);
     void setHasPaid(bool a);
     void setRentalProgram(bool a);
     void setIsUnlimited(bool a);
     void setPropertyName(std::string a);
-    void setAgency(std::string a);
+    void setAgency(int a);
+    void setAddress(std::string a);
 };
 
 int property::getMemberNumber()
@@ -313,9 +329,14 @@ std::string property::getPropertyName()
     return propertyName;
 }
 
-std::string property::getAgency()
+int property::getAgency()
 {
     return agency;
+}
+
+std::string property::getAddress()
+{
+    return address;
 }
 
 void property::setMemberNumber(int a)
@@ -378,9 +399,24 @@ void property::setPropertyName(std::string a)
     propertyName = a;
 }
 
-void property::setAgency(std::string a)
+void property::setAgency(int a)
 {
     agency = a;
+}
+
+void property::setAddress(std::string a)
+{
+    address = a;
+}
+
+int property::getGuests()
+{
+    return guests;
+}
+
+void setGuests(int a)
+{
+    guests = a;
 }
 
 void import()
@@ -408,6 +444,14 @@ std::string getUserInput()
     return input;
 }
 
+std::string getCaps()
+{
+    std::string input = "";
+    std::cin >> input;
+    std::transform(input.begin(), input.end(), input.begin(), ::toupper);
+    return input;
+}
+
 std::string printPropertiesMenu()
 {
     std::cout << "\n\nPROPERTIES MENU";
@@ -426,17 +470,119 @@ void invalidSelection()
 {
     std::cout << "\n\n!! INVALID SELECTION !!\n";
 }
+bool validAgency(std::string a)
+{
+    
+}
+void addProperty()
+{
+    std::string input = "";
+    property newProp;
+    int newNum = 0;
+    std::string conf = "";
+    while (conf != "Y")
+    {
+        std::cout << "\n\nPLEASE ENTER PROPERTY NAME: ";
+        input = getCaps();
+        newProp.setPropertyName(input);
+        std::cout << "\nPLEASE ENTER PROPERTY ADDRESS: ";
+        input = getCaps();
+        newProp.setAddress(input);
+        std::cout << "\nPLEASE ENTER MEMBER NUMBER: ";
+        input = getCaps();
+        newProp.setMemberNumber(input);
+        std::cout << "\nPLEASE ENTER NUMBER OF BEDROOMS: ";
+        std::cin >> newNum;
+        newProp.setBedrooms(newNum);
+        std::cout << "\nPLEASE ENTER THE MAX NUMBER OF GUESTS ALLOWED TO STAY: ";
+        std::cin >> newNum;
+        newProp.setGuests(newNum);
+        std::cout << "\nIS THIS ENROLLED IN THE RENTAL PROGRAM?";
+        std::cout << "\nY or N? ";
+        while (input != "Y" || input != "N")
+        {
+            std::cout << "\n";
+            std::cin >> input;
+        }
+        if (input == "Y")
+        {
+            newProp.setRentalProgram(true);
+        }
+        if (input == "N")
+        {
+            newProp.setRentalProgram(false);
+        }
+        std::cout << "\nIS THIS PROPERTY UNLIMITED?\nY or N?\n";
+        while (input != "Y" || input != "N")
+        {
+            std::cout << "\n";
+            std::cin >> input;
+        }
+        if (input == "Y")
+        {
+            newProp.setIsUnlimited(true);
+        }
+        if (input == "N")
+        {
+            newProp.setIsUnlimited(false);
+        }
+        std::cout << "\nPLEASE SELECT A RENTAL AGENCY";
+        while (newNum > 9 || newNum < 0)
+        {
+            for (int i = 0; i < 9;i++)
+            {
+                std::cout << "\n" << i << ": " << agencies[i];
+            }
+            std::cout << "\TYPE A NUMBER 0-9 FOR YOUR SELECTION: ";
+            try
+            {
+                std::cin >> newNum;
+            }
+            catch
+            {
+                std::cout << "\n!!NOT A VALID SELECTION!!\n";
+            }
+        }
+        newProp.setAgency(newNum);
+        
+    }
+}
+
+void propertiesExport()
+{
+    
+}
 
 void propertiesMenuAdd()
 {
     std::cout << "\nPROPERTIES MENU ADD";
     std::cout << "\n    PROPERTY";
-    std::cout << "\n    AGENCY";
+    //std::cout << "\n    AGENCY";
     std::cout << "\nPLEASE TYPE YOUR SELECTION: ";
     std::string input = getUserInput();
     int selection = 10;
 }
 
+void menuSelection()
+{
+    int selection = 0;
+    switch (selection)
+    {
+        case 0:
+            
+            break;
+        case 1:
+            
+            break;
+        case 2:
+            
+            break;
+        case 3:
+            
+            break;
+            
+    }
+}
 //Generic menu system, tell how many options you have and pass whole string seperatted by commas
 int menuSystem(int option, std::string x)
 {
@@ -530,39 +676,9 @@ void propertiesMenu()
 
 void selections()
 {
-    std::cout << "\nMAIN MENU";
-    std::cout << "\n  IMPORT";
-    std::cout << "\n  PROCESS";
-    std::cout << "\n  EXPORT";
-    std::cout << "\n  PROPERTIES";
-    std::cout << "\n  QUIT";
-    std::cout << "\nPlease type your selection: ";
-    std::string input;
-    std::cin >> input;
-    int selection = 10;
-
-    //conver string input to integer for switch
-    //try and case few 
-    if (input == "import" || input == "Import" || input == "IMPORT")
-    {
-        selection = 0;
-    }
-    if (input == "process" || input == "Process" || input == "PROCESS")
-    {
-        selection = 1;
-    }
-    if (input == "export" || input == "Export" || input == "EXPORT")
-    {
-        selection = 2;
-    }
-    if (input == "quit" || input == "Quit" || input == "QUIT")
-    {
-        selection = 3;
-    }
-    if (input == "properties" || input == "Properties" || input == "PROPERTIES")
-    {
-        selection = 4;
-    }
+    std::string menuOptions = "MAIN MENU,IMPORT,PROCESS,EXPORT,PROPERTIES,QUIT";
+    
+    int selection = menuSystem(5,menuOptions);
     switch (selection)
     {
     case 0:
@@ -576,10 +692,10 @@ void selections()
         break;
 
     case 3:
-        exit(0);
+            propertiesMenu();
         break;
     case 4:
-        propertiesMenu();
+            exit(0);
         break;
     case 10:
         invalidSelection();
@@ -590,6 +706,7 @@ void selections()
 int main()
 {
     int loop = 1;
+    //open up the list of properties into vector
     while (loop > 0)
     {
         selections();
