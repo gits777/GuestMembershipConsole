@@ -19,7 +19,7 @@ enum upperMenu
     exporting = 2,
     properties = 3,
     quit = 19
-}
+};
 enum status
 {
     pending = 0,
@@ -243,7 +243,7 @@ private:
     std::string propertyName = "";
     int agency = 0;
     std::string address = "";
-private:
+public:
     std::string getMemberNumber();
     int getTimesRented();
     int getBedrooms();
@@ -275,7 +275,7 @@ private:
     void setAddress(std::string a);
 };
 
-int property::getMemberNumber()
+std::string property::getMemberNumber()
 {
     return memberNumber;
 }
@@ -339,7 +339,7 @@ std::string property::getAddress()
     return address;
 }
 
-void property::setMemberNumber(int a)
+void property::setMemberNumber(std::string a)
 {
     memberNumber = a;
 }
@@ -414,7 +414,7 @@ int property::getGuests()
     return guests;
 }
 
-void setGuests(int a)
+void property::setGuests(int a)
 {
     guests = a;
 }
@@ -473,6 +473,38 @@ void invalidSelection()
 bool validAgency(std::string a)
 {
     
+}
+
+void importNewMembers()
+{
+    std::fstream file;
+    std::vector<member> importStack;
+    member newMember;
+    std::string line = "";
+    std::string word = "";
+    std::vector<std::string> row;
+    file.open("import.csv");
+    //remove the header line.
+    std::getline(file, line);
+    while (std::getline(file, line))
+    {
+        row.clear();
+        std::stringstream ss(line);
+        while (std::getline(ss, word, ','))
+        {
+            //remove quotes
+            word.erase(remove(word.begin(), word.end(), '"'), word.end());
+            if (word == "" || word == "Title")
+            {
+
+            }
+            else
+            {
+                row.push_back(word);
+            }
+        }
+
+    }
 }
 void addProperty()
 {
@@ -538,7 +570,7 @@ void addProperty()
             {
                 std::cin >> newNum;
             }
-            catch
+            catch (...)
             {
                 std::cout << "\n!!NOT A VALID SELECTION!!\n";
             }
