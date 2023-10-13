@@ -39,7 +39,7 @@ private:
     int familyNumber;
     int price;
     int bedrooms;
-    int propertyID;
+    int propertyID
     status memberStatus;
     std::string name;
     std::string phone;
@@ -477,12 +477,24 @@ bool validAgency(std::string a)
 
 void importNewMembers()
 {
+    int guestNum = 0;
+    int tempNum = 0;
+    std::string buffer = "";
+    //member import file 1
     std::fstream file;
+    //used for getting last member number
+    std::fstream file2;
     std::vector<member> importStack;
     member newMember;
     std::string line = "";
     std::string word = "";
     std::vector<std::string> row;
+    //get last member number
+    file2.open("membernums.num");
+    std::getline(file2, buffer);
+    tempNum = std::stoi(buffer);
+    tempNum++;
+    //dont forget to update and close after operation
     file.open("import.csv");
     //remove the header line.
     std::getline(file, line);
@@ -502,6 +514,36 @@ void importNewMembers()
             {
                 row.push_back(word);
             }
+        }
+        //data order
+        //first name, last name, phone, email, date from, date to, agency, bedrooms, property, guests names
+        guestNum = row.Size() - 9;
+
+        //set value for next member number
+        //create a file and update member number when ever it is taken.
+        //place data into class
+        newMember.setMemberNumber(tempNum);
+        newMember.setPhone(row[2]);
+        newMember.setEmail(row[3]);
+        newMember.setDateFrom(row[4]);
+        newMember.setDateTo(row[5]);
+        newMember.setAgency(row[6]);
+        newMember.SetBedRooms(row[7]);
+        newMember.setProperty(row[8]);
+        for(x = 0; x <= guestNum; x++)
+        {
+            newMember.setFamilyNumber(x);
+                if (x = 0)
+                {
+                    newMember.setName(row[0] + " " + row[1]);
+                    //set main member number
+                }
+                else
+                {
+                    newMember.setName(row[8 + x]);
+                    //set family numbers
+                }
+            
         }
 
     }
