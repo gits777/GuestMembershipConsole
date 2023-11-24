@@ -660,6 +660,115 @@ void updateCap(int day, int cap)
     file3.close();
 }
 
+void importTeams()
+{
+    std::fstream file;
+    std::vector<member> importStack;
+    member newMember;
+    std::string line = "";
+    std::string word = "";
+    std::string word2 = "";
+    std::vector<std::string> row;
+    file.open("teams.csv2");
+    int counterthing = 0;
+    while (std::getline(file, line))
+    {
+        row.clear();
+        std::stringstream ss(line);
+        counterthing = 0;
+        while (std::getline(ss, word, ','))
+        {
+            if (counterthing == 1)
+            {
+                word.erase(remove(word.begin(), word.end(), 'T'), word.end());
+                std::stringstream vs(word);
+                std::getline(vs, word2, 'M');
+                std::getline(vs, word, ',');
+                row.push_back(word2);
+            }
+            row.push_back(word);
+            counterthing++;
+        }
+
+        //set member
+        newMember.setMemberNumber(stoi(row[1]));
+        newMember.setFamilyNumber(stoi(row[2]));
+        if (row[3] == "Canceled")
+        {
+            newMember.setStatus(18);
+        }
+        else if (row[3] == "Paid")
+        {
+            newMember.setStatus(16);
+        }
+        else if (row[3] == "Email Sent")
+        {
+            newMember.setStatus(14);
+        }
+        else if (row[3] == "Card Printed")
+        {
+            newMember.setStatus(15);
+        }
+        else if (row[3] == "Awaiting Payment")
+        {
+            newMember.setStatus(14);
+        }
+        
+        newMember.setName(row[0]);
+        newMember.setDateFrom(stoi(row[6]));
+        newMember.setDateTo(stoi(row[7]));
+        newMember.setPhone(row[4]);
+        newMember.setEmail(row[5]);
+        newMember.setAgency(row[10]);
+        newMember.setProperty(row[12]);
+        newMember.setBedrooms(stoi(row[11]));
+        newMember.setPropertyID(0);
+        newMember.setPrice(stoi(row[15]));
+        newMember.setChange(0);
+        importStack.push_back(newMember);
+    }
+    file.close();
+
+    file.open("members.db");
+    while (std::getline(file, line))
+    {
+        row.clear();
+        std::stringstream ss(line);
+        while (std::getline(ss, word, ','))
+        {
+            row.push_back(word);
+        }
+
+        //set member
+        newMember.setMemberNumber(stoi(row[0]));
+        newMember.setFamilyNumber(stoi(row[1]));
+        newMember.setStatus(stoi(row[2]));
+        newMember.setName(row[3]);
+        newMember.setDateFrom(stoi(row[4]));
+        newMember.setDateTo(stoi(row[5]));
+        newMember.setPhone(row[6]);
+        newMember.setEmail(row[7]);
+        newMember.setAgency(row[8]);
+        newMember.setProperty(row[9]);
+        newMember.setBedrooms(stoi(row[10]));
+        newMember.setPropertyID(stoi(row[11]));
+        newMember.setPrice(stoi(row[12]));
+        newMember.setChange(stoi(row[13]));
+        importStack.push_back(newMember);
+    }
+    file.close();
+
+    file.open("members.db", std::ios::out | std::ios::trunc);
+    head = 0;
+    while (head < importStack.size())
+    {
+        file << importStack[head].getMemberNumber() << "," << importStack[head].getFamilyNumber() << "," << importStack[head].getStatus() << "," << importStack[head].getName() << "," << importStack[head].getDatefrom() << "," << importStack[head].getDateTo() << "," << importStack[head].getPhone() << "," << importStack[head].getEmail() << "," << importStack[head].getAgency() << "," << importStack[head].getProperty() << "," << importStack[head].getBedrooms() << "," << importStack[head].getpropertyID() << "," << importStack[head].getPrice() << "," << importStack[head].getChange() << std::endl;
+        head++;
+    }
+    file.flush();
+    file.close();
+}
+
 void importNewMembers()
 {
     int guestNum = 0;
