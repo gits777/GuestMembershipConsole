@@ -1,1 +1,20 @@
-﻿  GuestMembershipConsole.vcxproj -> C:\Users\namot\Documents\GuestMembership\GuestMembershipConsole\Debug\GuestMembershipConsole.exe
+﻿  GuestMembershipConsole.cpp
+C:\Users\namot\Documents\GuestMembership\GuestMembershipConsole\GuestMembershipConsole.cpp(781,17): warning C4018: '<': signed/unsigned mismatch
+C:\Users\namot\Documents\GuestMembership\GuestMembershipConsole\GuestMembershipConsole.cpp(887,17): warning C4018: '<': signed/unsigned mismatch
+C:\Users\namot\Documents\GuestMembership\GuestMembershipConsole\GuestMembershipConsole.cpp(1038,17): warning C4018: '<': signed/unsigned mismatch
+C:\Users\namot\Documents\GuestMembership\GuestMembershipConsole\GuestMembershipConsole.cpp(1050,26): warning C4018: '<': signed/unsigned mismatch
+C:\Users\namot\Documents\GuestMembership\GuestMembershipConsole\GuestMembershipConsole.cpp(1075,26): warning C4018: '<': signed/unsigned mismatch
+C:\Users\namot\Documents\GuestMembership\GuestMembershipConsole\GuestMembershipConsole.cpp(1280,26): warning C4018: '<': signed/unsigned mismatch
+C:\Users\namot\Documents\GuestMembership\GuestMembershipConsole\GuestMembershipConsole.cpp(1324,17): warning C4018: '<': signed/unsigned mismatch
+C:\Users\namot\Documents\GuestMembership\GuestMembershipConsole\GuestMembershipConsole.cpp(1337,17): warning C4018: '<': signed/unsigned mismatch
+C:\Users\namot\Documents\GuestMembership\GuestMembershipConsole\GuestMembershipConsole.cpp(1388,17): warning C4018: '<': signed/unsigned mismatch
+C:\Users\namot\Documents\GuestMembership\GuestMembershipConsole\GuestMembershipConsole.cpp(1425,17): warning C4018: '<': signed/unsigned mismatch
+C:\Users\namot\Documents\GuestMembership\GuestMembershipConsole\GuestMembershipConsole.cpp(1476,17): warning C4018: '<': signed/unsigned mismatch
+C:\Users\namot\Documents\GuestMembership\GuestMembershipConsole\GuestMembershipConsole.cpp(1499,17): warning C4018: '<': signed/unsigned mismatch
+C:\Users\namot\Documents\GuestMembership\GuestMembershipConsole\GuestMembershipConsole.cpp(1549,17): warning C4018: '<': signed/unsigned mismatch
+C:\Users\namot\Documents\GuestMembership\GuestMembershipConsole\GuestMembershipConsole.cpp(1568,17): warning C4018: '<': signed/unsigned mismatch
+C:\Users\namot\Documents\GuestMembership\GuestMembershipConsole\GuestMembershipConsole.cpp(1620,17): warning C4018: '<': signed/unsigned mismatch
+C:\Users\namot\Documents\GuestMembership\GuestMembershipConsole\GuestMembershipConsole.cpp(1675,17): warning C4018: '<': signed/unsigned mismatch
+C:\Users\namot\Documents\GuestMembership\GuestMembershipConsole\GuestMembershipConsole.cpp(1691,26): warning C4018: '<': signed/unsigned mismatch
+C:\Users\namot\Documents\GuestMembership\GuestMembershipConsole\GuestMembershipConsole.cpp(1711,34): warning C4018: '<': signed/unsigned mismatch
+C:\Users\namot\Documents\GuestMembership\GuestMembershipConsole\GuestMembershipConsole.cpp(1752,17): warning C4018: '<': signed/unsigned mismatch

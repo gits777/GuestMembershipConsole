@@ -51,6 +51,7 @@ private:
     std::string property;
     std::vector<std::string> familyNames;
     int changed;
+    int dateSub;
 
 public:
     int getMemberNumber();
@@ -84,7 +85,14 @@ public:
     void setStatus(int a);
     void setPropertyID(int a);
     void setChange(int a);
+    int getDateSub();
+    void setDateSub(int a);
 };
+
+int member::getDateSub()
+{
+    return dateSub;
+}
 
 int member::getMemberNumber()
 {
@@ -239,6 +247,11 @@ void member::setPropertyID(int a)
 void member::setChange(int a)
 {
     changed = a;
+}
+
+void member::setDateSub(int a)
+{
+    dateSub = a;
 }
 
 class property
@@ -583,6 +596,15 @@ std::string getCaps()
     return input;
 }
 
+int convertStatus(int a)
+{
+    if (a > 9)
+    {
+        a = a - 10;
+    }
+    return a;
+}
+
 void getCurrentTime(int& nday, int& nmonth, int& nyear)
 {
     time_t t = time(0);   // get time now
@@ -669,8 +691,9 @@ void importTeams()
     std::string word = "";
     std::string word2 = "";
     std::vector<std::string> row;
-    file.open("teams.csv2");
+    file.open("teams.csv");
     int counterthing = 0;
+    std::getline(file, line);
     while (std::getline(file, line))
     {
         row.clear();
@@ -678,9 +701,12 @@ void importTeams()
         counterthing = 0;
         while (std::getline(ss, word, ','))
         {
+            word.erase(remove(word.begin(), word.end(), '"'), word.end());
+            word.erase(remove(word.begin(), word.end(), '$'), word.end());
             if (counterthing == 1)
             {
                 word.erase(remove(word.begin(), word.end(), 'T'), word.end());
+                word.erase(remove(word.begin(), word.end(), '\\'), word.end());
                 std::stringstream vs(word);
                 std::getline(vs, word2, 'M');
                 std::getline(vs, word, ',');
@@ -707,7 +733,7 @@ void importTeams()
         }
         else if (row[3] == "Card Printed")
         {
-            newMember.setStatus(15);
+            newMember.setStatus(16);
         }
         else if (row[3] == "Awaiting Payment")
         {
@@ -715,6 +741,7 @@ void importTeams()
         }
         
         newMember.setName(row[0]);
+
         newMember.setDateFrom(stoi(row[6]));
         newMember.setDateTo(stoi(row[7]));
         newMember.setPhone(row[4]);
@@ -723,7 +750,11 @@ void importTeams()
         newMember.setProperty(row[12]);
         newMember.setBedrooms(stoi(row[11]));
         newMember.setPropertyID(0);
-        newMember.setPrice(stoi(row[15]));
+        //std::cout << row[15];
+        if (row[15] != "")
+        {
+            newMember.setPrice(stoi(row[15]));
+        }
         newMember.setChange(0);
         importStack.push_back(newMember);
     }
@@ -759,7 +790,7 @@ void importTeams()
     file.close();
 
     file.open("members.db", std::ios::out | std::ios::trunc);
-    head = 0;
+    int head = 0;
     while (head < importStack.size())
     {
         file << importStack[head].getMemberNumber() << "," << importStack[head].getFamilyNumber() << "," << importStack[head].getStatus() << "," << importStack[head].getName() << "," << importStack[head].getDatefrom() << "," << importStack[head].getDateTo() << "," << importStack[head].getPhone() << "," << importStack[head].getEmail() << "," << importStack[head].getAgency() << "," << importStack[head].getProperty() << "," << importStack[head].getBedrooms() << "," << importStack[head].getpropertyID() << "," << importStack[head].getPrice() << "," << importStack[head].getChange() << std::endl;
@@ -833,13 +864,14 @@ void importNewMembers()
         //create a file and update member number when ever it is taken.
         //place data into class
         newMember.setMemberNumber(tempNum);
-        newMember.setPhone(row[2]);
-        newMember.setEmail(row[3]);
-        newMember.setDateFrom(DMYToSerial(row[4]));
-        newMember.setDateTo(DMYToSerial(row[5]));
-        newMember.setAgency(row[6]);
-        newMember.setBedrooms(stoi(row[7]));
-        newMember.setProperty(row[8]);
+        newMember.setDateSub(DMYToSerial(row[0]));
+        newMember.setPhone(row[3]);
+        newMember.setEmail(row[4]);
+        newMember.setDateFrom(DMYToSerial(row[5]));
+        newMember.setDateTo(DMYToSerial(row[6]));
+        newMember.setAgency(row[7]);
+        newMember.setBedrooms(stoi(row[8]));
+        newMember.setProperty(row[9]);
         newMember.setStatus(0);
         newMember.setPrice(0);
         newMember.setPropertyID(0);
@@ -849,12 +881,12 @@ void importNewMembers()
             newMember.setFamilyNumber(x);
             if (x == 0)
             {
-                newMember.setName(row[0] + " " + row[1]);
+                newMember.setName(row[1] + " " + row[2]);
                 //set main member number
             }
             else
             {
-                newMember.setName(row[8 + x]);
+                newMember.setName(row[9 + x]);
                 //set family numbers
             }
             importStack.push_back(newMember);
@@ -868,9 +900,9 @@ void importNewMembers()
     int head = 0;
     while (head < (importStack.size()))
     {
-        std::cout << importStack[head].getMemberNumber() << "," << importStack[head].getFamilyNumber() << "," << importStack[head].getStatus() << "," << importStack[head].getName() << "," << importStack[head].getDatefrom() << "," << importStack[head].getDateTo() << "," << importStack[head].getPhone() << "," << importStack[head].getEmail() << "," << importStack[head].getAgency() << "," << importStack[head].getProperty() << "," << importStack[head].getBedrooms() << "," << importStack[head].getpropertyID() << "," << importStack[head].getPrice() << "," << importStack[head].getChange() << std::endl;
+        std::cout << importStack[head].getMemberNumber() << "," << importStack[head].getFamilyNumber() << "," << importStack[head].getStatus() << "," << importStack[head].getName() << "," << importStack[head].getDatefrom() << "," << importStack[head].getDateTo() << "," << importStack[head].getPhone() << "," << importStack[head].getEmail() << "," << importStack[head].getAgency() << "," << importStack[head].getProperty() << "," << importStack[head].getBedrooms() << "," << importStack[head].getpropertyID() << "," << importStack[head].getPrice() << "," << importStack[head].getChange() << "," << importStack[head].getDateSub() << std::endl;
 
-        file << importStack[head].getMemberNumber() << "," << importStack[head].getFamilyNumber() << "," << importStack[head].getStatus() << "," << importStack[head].getName() << "," << importStack[head].getDatefrom() << "," << importStack[head].getDateTo() << "," << importStack[head].getPhone() << "," << importStack[head].getEmail() << "," << importStack[head].getAgency() << "," << importStack[head].getProperty() << "," << importStack[head].getBedrooms() << "," << importStack[head].getpropertyID() << "," << importStack[head].getPrice() << "," << importStack[head].getChange() << std::endl;
+        file << importStack[head].getMemberNumber() << "," << importStack[head].getFamilyNumber() << "," << importStack[head].getStatus() << "," << importStack[head].getName() << "," << importStack[head].getDatefrom() << "," << importStack[head].getDateTo() << "," << importStack[head].getPhone() << "," << importStack[head].getEmail() << "," << importStack[head].getAgency() << "," << importStack[head].getProperty() << "," << importStack[head].getBedrooms() << "," << importStack[head].getpropertyID() << "," << importStack[head].getPrice() << "," << importStack[head].getChange() << "," << importStack[head].getDateSub() << std::endl;
         head++;
     }
     file.flush();
@@ -1009,6 +1041,7 @@ void processPendingAuto()
         newMember.setPropertyID(stoi(row[11]));
         newMember.setPrice(stoi(row[12]));
         newMember.setChange(stoi(row[13]));
+        newMember.setDateSub(stoi(row[14]));
         importStack.push_back(newMember);
     }
     file.close();
@@ -1318,7 +1351,7 @@ void processPendingAuto()
     head = 0;
     while (head < importStack.size())
     {
-        file << importStack[head].getMemberNumber() << "," << importStack[head].getFamilyNumber() << "," << importStack[head].getStatus() << "," << importStack[head].getName() << "," << importStack[head].getDatefrom() << "," << importStack[head].getDateTo() << "," << importStack[head].getPhone() << "," << importStack[head].getEmail() << "," << importStack[head].getAgency() << "," << importStack[head].getProperty() << "," << importStack[head].getBedrooms() << "," << importStack[head].getpropertyID() << "," << importStack[head].getPrice() << "," << importStack[head].getChange() << std::endl;
+        file << importStack[head].getMemberNumber() << "," << importStack[head].getFamilyNumber() << "," << importStack[head].getStatus() << "," << importStack[head].getName() << "," << importStack[head].getDatefrom() << "," << importStack[head].getDateTo() << "," << importStack[head].getPhone() << "," << importStack[head].getEmail() << "," << importStack[head].getAgency() << "," << importStack[head].getProperty() << "," << importStack[head].getBedrooms() << "," << importStack[head].getpropertyID() << "," << importStack[head].getPrice() << "," << importStack[head].getChange() << "," << importStack[head].getDateSub() << std::endl;
         head++;
     }
     file.flush();
@@ -1359,6 +1392,7 @@ void nsExport()
         newMember.setPropertyID(stoi(row[11]));
         newMember.setPrice(stoi(row[12]));
         newMember.setChange(stoi(row[13]));
+        newMember.setDateSub(stoi(row[14]));
         importStack.push_back(newMember);
     }
     file.close();
@@ -1385,7 +1419,14 @@ void nsExport()
             {
                 mtype = "Guest Form AR";
             }
-            file << "Dummy" << "," << "Dummy" << "," << importStack[head].getName() << "," << fname << "," << lname << "," << "TM" << importStack[head].getMemberNumber() << "G" << importStack[head].getFamilyNumber() << "," << mtype << "," << statuses[importStack[head].getStatus()] << "," << importStack[head].getEmail() << "," << importStack[head].getPhone() << "," << importStack[head].getDatefrom() << " - " << importStack[head].getDateTo() << "," << "Do Not Send" << "," << "N/A" << "," << "28461" << "," << "BALD HEAD ISLAND" << "," << importStack[head].getProperty() << "," << "North Carolina" << "," << "United States" << "," << "Guest Membership Form" << "," << "Text Fields" << "," << "Membership" << "," << "Guest Member Fee" << "," << "String" << "," << importStack[head].getPrice() << std::endl;
+            if (importStack[head].getStatus() < 10)
+            {
+                file << "Dummy" << "," << "Dummy" << "," << importStack[head].getName() << "," << fname << "," << lname << "," << "TM" << importStack[head].getMemberNumber() << "G" << importStack[head].getFamilyNumber() << "," << mtype << "," << statuses[convertStatus(importStack[head].getStatus())] << "," << importStack[head].getEmail() << "," << importStack[head].getPhone() << "," << importStack[head].getDatefrom() << " - " << importStack[head].getDateTo() << "," << "Do Not Send" << "," << "N/A" << "," << "28461" << "," << "BALD HEAD ISLAND" << "," << importStack[head].getProperty() << "," << "North Carolina" << "," << "United States" << "," << "Guest Membership Form" << "," << "Text Fields" << "," << "Membership" << "," << "Guest Member Fee" << "," << "String" << "," << importStack[head].getPrice() << std::endl;
+            }
+            else
+            {
+                file << "Dummy" << "," << "Dummy" << "," << importStack[head].getName() << "," << fname << "," << lname << "," << "T" << importStack[head].getMemberNumber() << "M" << importStack[head].getFamilyNumber() << "," << mtype << "," << statuses[convertStatus(importStack[head].getStatus())] << "," << importStack[head].getEmail() << "," << importStack[head].getPhone() << "," << importStack[head].getDatefrom() << " - " << importStack[head].getDateTo() << "," << "Do Not Send" << "," << "N/A" << "," << "28461" << "," << "BALD HEAD ISLAND" << "," << importStack[head].getProperty() << "," << "North Carolina" << "," << "United States" << "," << "Guest Membership Form" << "," << "Text Fields" << "," << "Membership" << "," << "Guest Member Fee" << "," << "String" << "," << importStack[head].getPrice() << std::endl;
+            }
             //file << importStack[head].getMemberNumber() << "," << importStack[head].getFamilyNumber() << "," << importStack[head].getStatus() << "," << importStack[head].getName() << "," << importStack[head].getDatefrom() << "," << importStack[head].getDateTo() << "," << importStack[head].getPhone() << "," << importStack[head].getEmail() << "," << importStack[head].getAgency() << "," << importStack[head].getProperty() << "," << importStack[head].getBedrooms() << "," << importStack[head].getpropertyID() << "," << importStack[head].getPrice() << "," << importStack[head].getChange() << std::endl;
             importStack[head].setChange(2);
         }
@@ -1399,7 +1440,7 @@ void nsExport()
     head = 0;
     while (head < importStack.size())
     {
-        file << importStack[head].getMemberNumber() << "," << importStack[head].getFamilyNumber() << "," << importStack[head].getStatus() << "," << importStack[head].getName() << "," << importStack[head].getDatefrom() << "," << importStack[head].getDateTo() << "," << importStack[head].getPhone() << "," << importStack[head].getEmail() << "," << importStack[head].getAgency() << "," << importStack[head].getProperty() << "," << importStack[head].getBedrooms() << "," << importStack[head].getpropertyID() << "," << importStack[head].getPrice() << "," << importStack[head].getChange() << std::endl;
+        file << importStack[head].getMemberNumber() << "," << importStack[head].getFamilyNumber() << "," << importStack[head].getStatus() << "," << importStack[head].getName() << "," << importStack[head].getDatefrom() << "," << importStack[head].getDateTo() << "," << importStack[head].getPhone() << "," << importStack[head].getEmail() << "," << importStack[head].getAgency() << "," << importStack[head].getProperty() << "," << importStack[head].getBedrooms() << "," << importStack[head].getpropertyID() << "," << importStack[head].getPrice() << "," << importStack[head].getChange() << "," << importStack[head].getDateSub() << std::endl;
         head++;
     }
     file.flush();
@@ -1441,6 +1482,7 @@ void approvedImport()
         newMember.setPropertyID(stoi(row[11]));
         newMember.setPrice(stoi(row[12]));
         newMember.setChange(stoi(row[13]));
+        newMember.setDateSub(stoi(row[14]));
         importStack.push_back(newMember);
     }
     file.close();
@@ -1473,7 +1515,7 @@ void approvedImport()
     head = 0;
     while (head < importStack.size())
     {
-        file << importStack[head].getMemberNumber() << "," << importStack[head].getFamilyNumber() << "," << importStack[head].getStatus() << "," << importStack[head].getName() << "," << importStack[head].getDatefrom() << "," << importStack[head].getDateTo() << "," << importStack[head].getPhone() << "," << importStack[head].getEmail() << "," << importStack[head].getAgency() << "," << importStack[head].getProperty() << "," << importStack[head].getBedrooms() << "," << importStack[head].getpropertyID() << "," << importStack[head].getPrice() << "," << importStack[head].getChange() << std::endl;
+        file << importStack[head].getMemberNumber() << "," << importStack[head].getFamilyNumber() << "," << importStack[head].getStatus() << "," << importStack[head].getName() << "," << importStack[head].getDatefrom() << "," << importStack[head].getDateTo() << "," << importStack[head].getPhone() << "," << importStack[head].getEmail() << "," << importStack[head].getAgency() << "," << importStack[head].getProperty() << "," << importStack[head].getBedrooms() << "," << importStack[head].getpropertyID() << "," << importStack[head].getPrice() << "," << importStack[head].getChange() << "," << importStack[head].getDateSub() << std::endl;
         head++;
     }
     file.flush();
@@ -1514,6 +1556,7 @@ void generateEmail()
         newMember.setPropertyID(stoi(row[11]));
         newMember.setPrice(stoi(row[12]));
         newMember.setChange(stoi(row[13]));
+        newMember.setDateSub(stoi(row[14]));
         importStack.push_back(newMember);
     }
     file.close();
@@ -1525,7 +1568,7 @@ void generateEmail()
     {
         if (importStack[head].getStatus() == 3 && importStack[head].getFamilyNumber() == 0 && importStack[head].getChange() == 0)
         {
-            file << importStack[head].getMemberNumber() << "," << importStack[head].getFamilyNumber() << "," << importStack[head].getStatus() << "," << importStack[head].getName() << "," << importStack[head].getDatefrom() << "," << importStack[head].getDateTo() << "," << importStack[head].getPhone() << "," << importStack[head].getEmail() << "," << importStack[head].getAgency() << "," << importStack[head].getProperty() << "," << importStack[head].getBedrooms() << "," << importStack[head].getpropertyID() << "," << importStack[head].getPrice() << "," << importStack[head].getChange() << std::endl;
+            file << importStack[head].getMemberNumber() << "," << importStack[head].getFamilyNumber() << "," << importStack[head].getStatus() << "," << importStack[head].getName() << "," << importStack[head].getDatefrom() << "," << importStack[head].getDateTo() << "," << importStack[head].getPhone() << "," << importStack[head].getEmail() << "," << importStack[head].getAgency() << "," << importStack[head].getProperty() << "," << importStack[head].getBedrooms() << "," << importStack[head].getpropertyID() << "," << importStack[head].getPrice() << "," << importStack[head].getChange() << "," << importStack[head].getDateSub() << std::endl;
             
         }
         if (importStack[head].getStatus() == 3 && importStack[head].getChange() == 0)
@@ -1542,7 +1585,7 @@ void generateEmail()
     head = 0;
     while (head < importStack.size())
     {
-        file << importStack[head].getMemberNumber() << "," << importStack[head].getFamilyNumber() << "," << importStack[head].getStatus() << "," << importStack[head].getName() << "," << importStack[head].getDatefrom() << "," << importStack[head].getDateTo() << "," << importStack[head].getPhone() << "," << importStack[head].getEmail() << "," << importStack[head].getAgency() << "," << importStack[head].getProperty() << "," << importStack[head].getBedrooms() << "," << importStack[head].getpropertyID() << "," << importStack[head].getPrice() << "," << importStack[head].getChange() << std::endl;
+        file << importStack[head].getMemberNumber() << "," << importStack[head].getFamilyNumber() << "," << importStack[head].getStatus() << "," << importStack[head].getName() << "," << importStack[head].getDatefrom() << "," << importStack[head].getDateTo() << "," << importStack[head].getPhone() << "," << importStack[head].getEmail() << "," << importStack[head].getAgency() << "," << importStack[head].getProperty() << "," << importStack[head].getBedrooms() << "," << importStack[head].getpropertyID() << "," << importStack[head].getPrice() << "," << importStack[head].getChange() << "," << importStack[head].getDateSub() << std::endl;
         head++;
     }
     file.flush();
@@ -1585,6 +1628,7 @@ void emailSent()
         newMember.setPropertyID(stoi(row[11]));
         newMember.setPrice(stoi(row[12]));
         newMember.setChange(stoi(row[13]));
+        newMember.setDateSub(stoi(row[14]));
         importStack.push_back(newMember);
     }
     file.close();
@@ -1599,7 +1643,7 @@ void emailSent()
             importStack[head].setStatus(4);
             importStack[head].setChange(1);
         }
-        file << importStack[head].getMemberNumber() << "," << importStack[head].getFamilyNumber() << "," << importStack[head].getStatus() << "," << importStack[head].getName() << "," << importStack[head].getDatefrom() << "," << importStack[head].getDateTo() << "," << importStack[head].getPhone() << "," << importStack[head].getEmail() << "," << importStack[head].getAgency() << "," << importStack[head].getProperty() << "," << importStack[head].getBedrooms() << "," << importStack[head].getpropertyID() << "," << importStack[head].getPrice() << "," << importStack[head].getChange() << std::endl;
+        file << importStack[head].getMemberNumber() << "," << importStack[head].getFamilyNumber() << "," << importStack[head].getStatus() << "," << importStack[head].getName() << "," << importStack[head].getDatefrom() << "," << importStack[head].getDateTo() << "," << importStack[head].getPhone() << "," << importStack[head].getEmail() << "," << importStack[head].getAgency() << "," << importStack[head].getProperty() << "," << importStack[head].getBedrooms() << "," << importStack[head].getpropertyID() << "," << importStack[head].getPrice() << "," << importStack[head].getChange() << "," << importStack[head].getDateSub() << std::endl;
         head++;
     }
     file.flush();
@@ -1642,6 +1686,7 @@ void billing()
         newMember.setPropertyID(stoi(row[11]));
         newMember.setPrice(stoi(row[12]));
         newMember.setChange(stoi(row[13]));
+        newMember.setDateSub(stoi(row[14]));
         importStack.push_back(newMember);
     }
     file.close();
@@ -1649,10 +1694,10 @@ void billing()
     int head = 0;
     while (head < importStack.size())
     {
-        if (importStack[head].getStatus() == 4 && importStack[head].getChange() == 0 && importStack[head].getFamilyNumber() == 0)
+        if (importStack[head].getStatus() == 4 && importStack[head].getChange() == 0 && importStack[head].getFamilyNumber() == 0 || importStack[head].getStatus() == 14 && importStack[head].getChange() == 0 && importStack[head].getFamilyNumber() == 1)
         {
             std::cout << "\n\n";
-            std::cout << importStack[head].getName() << "    TM" << importStack[head].getMemberNumber() << "M0\n";
+            std::cout << importStack[head].getName() << "    TM" << importStack[head].getMemberNumber() << "G0\n";
             int amonth = 0;
             int aday = 0;
             int ayear = 0;
@@ -1665,7 +1710,7 @@ void billing()
             int head2 = 0;
             while (head2 < importStack.size())
             {
-                if (importStack[head2].getMemberNumber() == importStack[head].getMemberNumber())
+                if (importStack[head2].getMemberNumber() == importStack[head].getMemberNumber() && importStack[head2].getStatus() == importStack[head].getStatus())
                 {
                     std::cout << importStack[head2].getName() << "\n";
                 }
@@ -1685,9 +1730,14 @@ void billing()
                     head2 = 0;
                     while (head2 < importStack.size())
                     {
-                        if (importStack[head2].getMemberNumber() == importStack[head].getMemberNumber())
+                        if (importStack[head2].getMemberNumber() == importStack[head].getMemberNumber() && importStack[head2].getStatus() < 10)
                         {
                             importStack[head2].setStatus(6); //make them active
+                            importStack[head2].setChange(1);
+                        }
+                        else
+                        {
+                            importStack[head2].setStatus(16); //make them active
                             importStack[head2].setChange(1);
                         }
                         head2++;
@@ -1721,7 +1771,7 @@ EXIT_LOOP:
     head = 0;
     while (head < importStack.size())
     {
-        file << importStack[head].getMemberNumber() << "," << importStack[head].getFamilyNumber() << "," << importStack[head].getStatus() << "," << importStack[head].getName() << "," << importStack[head].getDatefrom() << "," << importStack[head].getDateTo() << "," << importStack[head].getPhone() << "," << importStack[head].getEmail() << "," << importStack[head].getAgency() << "," << importStack[head].getProperty() << "," << importStack[head].getBedrooms() << "," << importStack[head].getpropertyID() << "," << importStack[head].getPrice() << "," << importStack[head].getChange() << std::endl;
+        file << importStack[head].getMemberNumber() << "," << importStack[head].getFamilyNumber() << "," << importStack[head].getStatus() << "," << importStack[head].getName() << "," << importStack[head].getDatefrom() << "," << importStack[head].getDateTo() << "," << importStack[head].getPhone() << "," << importStack[head].getEmail() << "," << importStack[head].getAgency() << "," << importStack[head].getProperty() << "," << importStack[head].getBedrooms() << "," << importStack[head].getpropertyID() << "," << importStack[head].getPrice() << "," << importStack[head].getChange() << "," << importStack[head].getDateSub() << std::endl;
         head++;
     }
     file.flush();
@@ -1901,6 +1951,28 @@ void process()
     
 }
 
+void importMenu()
+{
+    int breakout = 0;
+    while (breakout == 0)
+    {
+        std::string menuOptions = "IMPORT MENU,IMPORT NEW MEMBERS,IMPORT TEAMS,BACK";
+        int selection = menuSystem(5, menuOptions);
+        switch (selection)
+        {
+        case 0:
+            importNewMembers();
+            break;
+        case 1:
+            importTeams();
+            break;
+        case 2:
+            breakout = 1;
+            break;
+        }
+    }
+}
+
 void selections()
 {
     std::string menuOptions = "MAIN MENU,IMPORT,PROCESS,EXPORT,PROPERTIES,QUIT";
@@ -1908,7 +1980,7 @@ void selections()
     switch (selection)
     {
     case 0:
-        importNewMembers();
+        importMenu();
         break;
     case 1:
         process();
