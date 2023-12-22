@@ -1,1 +1,2 @@
 C:\Users\gits7\Source\Repos\gits777\GuestMembershipConsole\Release\GuestMembershipConsole.exe
+C:\Users\namot\Documents\GuestMembership\GuestMembershipConsole\Release\GuestMembershipConsole.exe

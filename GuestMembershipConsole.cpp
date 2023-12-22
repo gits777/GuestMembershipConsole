@@ -863,15 +863,7 @@ void importTeams()
     }
     file.close();
 
-    file.open(".\\database\\members.db", std::ios::out | std::ios::trunc);
-    int head = 0;
-    while (head < importStack.size())
-    {
-        file << importStack[head].getMemberNumber() << "," << importStack[head].getFamilyNumber() << "," << importStack[head].getStatus() << "," << importStack[head].getName() << "," << importStack[head].getDatefrom() << "," << importStack[head].getDateTo() << "," << importStack[head].getPhone() << "," << importStack[head].getEmail() << "," << importStack[head].getAgency() << "," << importStack[head].getProperty() << "," << importStack[head].getBedrooms() << "," << importStack[head].getpropertyID() << "," << importStack[head].getPrice() << "," << importStack[head].getChange() << std::endl;
-        head++;
-    }
-    file.flush();
-    file.close();
+    callExportDB(importStack);
 }
 
 void importNewMembers()
@@ -972,17 +964,7 @@ void importNewMembers()
     file.close();
 
     //open database file and add members to it
-    file.open(".\\database\\members.db", std::ios::out | std::ios::app);
-    int head = 0;
-    while (head < (importStack.size()))
-    {
-        std::cout << importStack[head].getMemberNumber() << "," << importStack[head].getFamilyNumber() << "," << importStack[head].getStatus() << "," << importStack[head].getName() << "," << importStack[head].getDatefrom() << "," << importStack[head].getDateTo() << "," << importStack[head].getPhone() << "," << importStack[head].getEmail() << "," << importStack[head].getAgency() << "," << importStack[head].getProperty() << "," << importStack[head].getBedrooms() << "," << importStack[head].getpropertyID() << "," << importStack[head].getPrice() << "," << importStack[head].getChange() << "," << importStack[head].getDateSub() << std::endl;
-
-        file << importStack[head].getMemberNumber() << "," << importStack[head].getFamilyNumber() << "," << importStack[head].getStatus() << "," << importStack[head].getName() << "," << importStack[head].getDatefrom() << "," << importStack[head].getDateTo() << "," << importStack[head].getPhone() << "," << importStack[head].getEmail() << "," << importStack[head].getAgency() << "," << importStack[head].getProperty() << "," << importStack[head].getBedrooms() << "," << importStack[head].getpropertyID() << "," << importStack[head].getPrice() << "," << importStack[head].getChange() << "," << importStack[head].getDateSub() << std::endl;
-        head++;
-    }
-    file.flush();
-    file.close();
+    callExportDB(importStack);
 
     file.open(".\\database\\membernums.num", std::ios::out | std::ios::trunc);
     file << tempNum;
@@ -1424,15 +1406,7 @@ void processPendingAuto()
         head++;
     }
     //open database file and add members to it
-    file.open(".\\database\\members.db", std::ios::out | std::ios::trunc);
-    head = 0;
-    while (head < importStack.size())
-    {
-        file << importStack[head].getMemberNumber() << "," << importStack[head].getFamilyNumber() << "," << importStack[head].getStatus() << "," << importStack[head].getName() << "," << importStack[head].getDatefrom() << "," << importStack[head].getDateTo() << "," << importStack[head].getPhone() << "," << importStack[head].getEmail() << "," << importStack[head].getAgency() << "," << importStack[head].getProperty() << "," << importStack[head].getBedrooms() << "," << importStack[head].getpropertyID() << "," << importStack[head].getPrice() << "," << importStack[head].getChange() << "," << importStack[head].getDateSub() << std::endl;
-        head++;
-    }
-    file.flush();
-    file.close();
+    callExportDB(importStack);
 }
 
 void nsExport()
@@ -1691,15 +1665,7 @@ void generateEmail()
     file.close();
 
     //open database file and add members to it
-    file.open(".\\database\\members.db", std::ios::out | std::ios::trunc);
-    head = 0;
-    while (head < importStack.size())
-    {
-        file << importStack[head].getMemberNumber() << "," << importStack[head].getFamilyNumber() << "," << importStack[head].getStatus() << "," << importStack[head].getName() << "," << importStack[head].getDatefrom() << "," << importStack[head].getDateTo() << "," << importStack[head].getPhone() << "," << importStack[head].getEmail() << "," << importStack[head].getAgency() << "," << importStack[head].getProperty() << "," << importStack[head].getBedrooms() << "," << importStack[head].getpropertyID() << "," << importStack[head].getPrice() << "," << importStack[head].getChange() << "," << importStack[head].getDateSub() << std::endl;
-        head++;
-    }
-    file.flush();
-    file.close();
+    callExportDB(importStack);
 }
 
 //change from email to awaiting payment
@@ -1744,7 +1710,6 @@ void emailSent()
     file.close();
     std::cout << "\n\nDatabase Closed\n\n";
     //open database file and add members to it
-    file.open(".\\database\\members.db", std::ios::out | std::ios::trunc);
     int head = 0;
     int head2 = 0;
     while (head < importStack.size())
@@ -1764,12 +1729,11 @@ void emailSent()
                 head2++;
             }
         }
-        file << importStack[head].getMemberNumber() << "," << importStack[head].getFamilyNumber() << "," << importStack[head].getStatus() << "," << importStack[head].getName() << "," << importStack[head].getDatefrom() << "," << importStack[head].getDateTo() << "," << importStack[head].getPhone() << "," << importStack[head].getEmail() << "," << importStack[head].getAgency() << "," << importStack[head].getProperty() << "," << importStack[head].getBedrooms() << "," << importStack[head].getpropertyID() << "," << importStack[head].getPrice() << "," << importStack[head].getChange() << "," << importStack[head].getDateSub() << std::endl;
+        //file << importStack[head].getMemberNumber() << "," << importStack[head].getFamilyNumber() << "," << importStack[head].getStatus() << "," << importStack[head].getName() << "," << importStack[head].getDatefrom() << "," << importStack[head].getDateTo() << "," << importStack[head].getPhone() << "," << importStack[head].getEmail() << "," << importStack[head].getAgency() << "," << importStack[head].getProperty() << "," << importStack[head].getBedrooms() << "," << importStack[head].getpropertyID() << "," << importStack[head].getPrice() << "," << importStack[head].getChange() << "," << importStack[head].getDateSub() << std::endl;
         head++;
     }
-    file.flush();
-    file.close();
-    std::cout << "\n\nDatabase Written\n\n";
+
+    callExportDB(importStack);
     std::remove("email.csv");
     std::remove("nsimport.csv");
 }
@@ -1894,15 +1858,7 @@ EXIT_LOOP:
 
 
     //open database file and add members to it
-    file.open(".\\database\\members.db", std::ios::out | std::ios::trunc);
-    head = 0;
-    while (head < importStack.size())
-    {
-        file << importStack[head].getMemberNumber() << "," << importStack[head].getFamilyNumber() << "," << importStack[head].getStatus() << "," << importStack[head].getName() << "," << importStack[head].getDatefrom() << "," << importStack[head].getDateTo() << "," << importStack[head].getPhone() << "," << importStack[head].getEmail() << "," << importStack[head].getAgency() << "," << importStack[head].getProperty() << "," << importStack[head].getBedrooms() << "," << importStack[head].getpropertyID() << "," << importStack[head].getPrice() << "," << importStack[head].getChange() << "," << importStack[head].getDateSub() << std::endl;
-        head++;
-    }
-    file.flush();
-    file.close();
+    callExportDB(importStack);
 }
 
 //Generic menu system, tell how many options you have and pass whole string seperatted by commas
@@ -2096,7 +2052,7 @@ SEARCH_BACK:
     breakout = 0;
     while (breakout == 0)
     {
-        std::string menuOptions = "MEMBER INFORMATION,NAME," + importStack[selectedHead].getName() + ",PRICE," + std::to_string(importStack[selectedHead].getPrice()) + ",DATE FROM," + std::to_string(fromMonth) + "/" + std::to_string(fromDay) + "/" + std::to_string(fromYear) + ",DATE TO," + std::to_string(toMonth) + "/" + std::to_string(toDay) + "/" + std::to_string(toYear) + ",DATE SUBMITTED," + std::to_string(subMonth) + "/" + std::to_string(subDay) + "/" + std::to_string(subYear) + ",PHONE," + importStack[selectedHead].getPhone() + ",EMAIL," + importStack[selectedHead].getEmail() + ",PROPERTY," + importStack[selectedHead].getProperty() + ",PROPERTY ID," + std::to_string(importStack[selectedHead].getpropertyID()) + ",AGENCY," + importStack[selectedHead].getAgency() + ",BEDROOMS," + std::to_string(importStack[selectedHead].getBedrooms()) + ",MEMBER STATUS," + statuses[importStack[selectedHead].getStatus()] + ",CHANGED," + std::to_string(importStack[selectedHead].getChange()) + ",SAVE,SAVES ONLY,SEARCH,BACK TO SEARCH,EXPORT,SAVES AND ADDS TO NSIMPORT,DELETE,DELETES CURRENT MEMBER,DELETE FAMILY,DELETES WHOLE FAMILY WITH CURRENT MEMBER NUMBER,QUIT";
+        std::string menuOptions = "MEMBER INFORMATION,NAME," + importStack[selectedHead].getName() + ",PRICE," + std::to_string(importStack[selectedHead].getPrice()) + ",DATE FROM," + std::to_string(fromMonth) + "/" + std::to_string(fromDay) + "/" + std::to_string(fromYear) + ",DATE TO," + std::to_string(toMonth) + "/" + std::to_string(toDay) + "/" + std::to_string(toYear) + ",DATE SUBMITTED," + std::to_string(subMonth) + "/" + std::to_string(subDay) + "/" + std::to_string(subYear) + ",PHONE," + importStack[selectedHead].getPhone() + ",EMAIL," + importStack[selectedHead].getEmail() + ",PROPERTY," + importStack[selectedHead].getProperty() + ",PROPERTY ID," + std::to_string(importStack[selectedHead].getpropertyID()) + ",AGENCY," + importStack[selectedHead].getAgency() + ",BEDROOMS," + std::to_string(importStack[selectedHead].getBedrooms()) + ",MEMBER STATUS," + statuses[importStack[selectedHead].getStatus()] + ",CHANGED," + std::to_string(importStack[selectedHead].getChange()) + ",SAVE,SAVES ONLY,SEARCH,BACK TO SEARCH,EXPORT,SAVES AND ADDS TO NSIMPORT,DELETE,DELETES CURRENT MEMBER,DELETE FAMILY,DELETES WHOLE FAMILY WITH CURRENT MEMBER NUMBER,BILLING,CONFIRM OR OVERIDE BILLING,QUIT";
         selection = menuSystem(1, menuOptions);
         switch (selection)
         {
@@ -2173,26 +2129,7 @@ SEARCH_BACK:
             //export
         {
         std::cout << "\n\nSAVING.";
-        file.open(".\\database\\members.db", std::ios::out | std::ios::trunc);
-        head = 0;
-        hundo = 0;
-        hundo = importStack.size();
-        hundo = (hundo / 20);
-        countingn = 0;
-        while (head < importStack.size())
-        {
-            file << importStack[head].getMemberNumber() << "," << importStack[head].getFamilyNumber() << "," << importStack[head].getStatus() << "," << importStack[head].getName() << "," << importStack[head].getDatefrom() << "," << importStack[head].getDateTo() << "," << importStack[head].getPhone() << "," << importStack[head].getEmail() << "," << importStack[head].getAgency() << "," << importStack[head].getProperty() << "," << importStack[head].getBedrooms() << "," << importStack[head].getpropertyID() << "," << importStack[head].getPrice() << "," << importStack[head].getChange() << "," << importStack[head].getDateSub() << std::endl;
-            if (countingn == hundo)
-            {
-                std::cout << ".";
-                countingn = 0;
-            }
-            countingn++;
-            head++;
-        }
-        std::cout << "COMPLETE\n";
-        file.flush();
-        file.close();
+        callExportDB(importStack);
         
         file.open("nsimport.csv", std::ios::out | std::ios::app);
         std::cout << "\nSTARTING EXPORT";
@@ -2271,7 +2208,54 @@ SEARCH_BACK:
             goto SEARCH_EXIT;
             break;
         case 18:
-            //new quit
+        {
+            //Billing
+            selection = 0;
+            int head2 = 0;
+            head = 0;
+            while (selection == 0)
+            {
+                std::cout << "\nCURRENT PRICE  " << importStack[selectedHead].getPrice() << std::endl;
+                std::cout << "\nHas Thes Been Billed? \n" << "YES  NO  OVERRIDE\n";
+                std::string input = "";
+                input = getUserInput();
+                if (input == "YES")
+                {
+                    selection = 1;
+                    //set status to active
+                    head2 = 0;
+                    while (head2 < importStack.size())
+                    {
+                        if (importStack[head2].getMemberNumber() == importStack[selectedHead].getMemberNumber() && importStack[head2].getStatus() < 10)
+                        {
+                            importStack[head2].setStatus(6); //make them active
+                            importStack[head2].setChange(1);
+                        }
+                        if (importStack[head2].getMemberNumber() == importStack[selectedHead].getMemberNumber() && importStack[head2].getStatus() > 10)
+                        {
+                            importStack[head2].setStatus(16); //make them active
+                            importStack[head2].setChange(1);
+                        }
+                        head2++;
+                    }
+                }
+                if (input == "NO")
+                {
+                    selection = 1;
+                    //do nothing go to next member
+                }
+                if (input == "OVERRIDE")
+                {
+                    //change the price and loop back to the question 
+                    std::cout << "\n\nPLEASE ENTER THE NEW PRICE BELOW\n";
+                    importStack[selectedHead].setPrice(std::stoi(getUserInput()));
+                    std::cout << "\nPrice Changed to: " << importStack[selectedHead].getPrice() << "\n\n\n";
+                }
+            }
+            break;
+        }
+        case 19:
+            //New Quit
             goto SEARCH_EXIT;
             break;
         }
