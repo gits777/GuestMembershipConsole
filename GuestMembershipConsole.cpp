@@ -481,6 +481,7 @@ void updateNumbers()
         newMember.setPropertyID(stoi(row[11]));
         newMember.setPrice(stoi(row[12]));
         newMember.setChange(stoi(row[13]));
+        newMember.setDateSub(stoi(row[14]));
         importStack.push_back(newMember);
     }
     file.close();
@@ -663,19 +664,26 @@ std::string callNSImport(member xMember)
     return output;
 }
 
-void callExportDB(std::vector<member> importStack)
+void callExportDB(std::vector<member> importStack, int mode)
 {
-    std::fstream file;
-    file.open(".\\database\\members.db", std::ios::out | std::ios::trunc);
+    std::fstream filex;
+    if (mode == 0)
+    {
+        filex.open(".\\database\\members.db", std::ios::out | std::ios::app);
+    }
+    else
+    {
+        filex.open(".\\database\\members.db", std::ios::out | std::ios::trunc);
+    }
     std::cout << "\nDATABASE SAVING...PLEASE WAIT\n";
     int head = 0;
     while (head < importStack.size())
     {
-        file << importStack[head].getMemberNumber() << "," << importStack[head].getFamilyNumber() << "," << importStack[head].getStatus() << "," << importStack[head].getName() << "," << importStack[head].getDatefrom() << "," << importStack[head].getDateTo() << "," << importStack[head].getPhone() << "," << importStack[head].getEmail() << "," << importStack[head].getAgency() << "," << importStack[head].getProperty() << "," << importStack[head].getBedrooms() << "," << importStack[head].getpropertyID() << "," << importStack[head].getPrice() << "," << importStack[head].getChange() << "," << importStack[head].getDateSub() << std::endl;
+        filex << importStack[head].getMemberNumber() << "," << importStack[head].getFamilyNumber() << "," << importStack[head].getStatus() << "," << importStack[head].getName() << "," << importStack[head].getDatefrom() << "," << importStack[head].getDateTo() << "," << importStack[head].getPhone() << "," << importStack[head].getEmail() << "," << importStack[head].getAgency() << "," << importStack[head].getProperty() << "," << importStack[head].getBedrooms() << "," << importStack[head].getpropertyID() << "," << importStack[head].getPrice() << "," << importStack[head].getChange() << "," << importStack[head].getDateSub() << std::endl;
         head++;
     }
-    file.flush();
-    file.close();
+    filex.flush();
+    filex.close();
     std::cout << "\n\nDATABASE SAVED!\n\n";
 }
 
@@ -863,7 +871,7 @@ void importTeams()
     }
     file.close();
 
-    callExportDB(importStack);
+    callExportDB(importStack,1);
 }
 
 void importNewMembers()
@@ -964,7 +972,7 @@ void importNewMembers()
     file.close();
 
     //open database file and add members to it
-    callExportDB(importStack);
+    callExportDB(importStack,0);
 
     file.open(".\\database\\membernums.num", std::ios::out | std::ios::trunc);
     file << tempNum;
@@ -1406,7 +1414,7 @@ void processPendingAuto()
         head++;
     }
     //open database file and add members to it
-    callExportDB(importStack);
+    callExportDB(importStack,1);
 }
 
 void nsExport()
@@ -1470,7 +1478,7 @@ void nsExport()
     file.close();
 
     //open database file and add members to it
-    callExportDB(importStack);
+    callExportDB(importStack,1);
    // std::remove("import.csv");
 
 }
@@ -1600,7 +1608,7 @@ void approvedImport()
     }
 
     //open database file and add members to it
-    callExportDB(importStack);
+    callExportDB(importStack,1);
 
     //delete the nsimport file after confirm
     std::remove("nsimport.csv");
@@ -1665,7 +1673,7 @@ void generateEmail()
     file.close();
 
     //open database file and add members to it
-    callExportDB(importStack);
+    callExportDB(importStack,1);
 }
 
 //change from email to awaiting payment
@@ -1733,7 +1741,7 @@ void emailSent()
         head++;
     }
 
-    callExportDB(importStack);
+    callExportDB(importStack,1);
     std::remove("email.csv");
     std::remove("nsimport.csv");
 }
@@ -1858,7 +1866,7 @@ EXIT_LOOP:
 
 
     //open database file and add members to it
-    callExportDB(importStack);
+    callExportDB(importStack,1);
 }
 
 //Generic menu system, tell how many options you have and pass whole string seperatted by commas
@@ -2119,7 +2127,7 @@ SEARCH_BACK:
             // 
             //open database file and add members to it
             std::cout << "\n\nSAVING.";
-            callExportDB(importStack);
+            callExportDB(importStack,1);
             //goto SEARCH_EXIT;
             break;
         case 14:
@@ -2129,7 +2137,7 @@ SEARCH_BACK:
             //export
         {
         std::cout << "\n\nSAVING.";
-        callExportDB(importStack);
+        callExportDB(importStack,1);
         
         file.open("nsimport.csv", std::ios::out | std::ios::app);
         std::cout << "\nSTARTING EXPORT";
