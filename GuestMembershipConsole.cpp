@@ -13,7 +13,7 @@
 #include <iomanip>
 
 std::string agencies[9] = { "BALD HEAD ISLAND SERVICES","BARBARA ADAMS/HOMES ON BHI","BHI RENTALS/ROD HYSON","BHI VACATIONS","EDIE SURRATT","INTRACOASTAL VACATION RENTALS","ITRIP NC BEACHES","VRBO & OTHERS","Wendy Wilmot Properties (WWP)" };
-std::string statuses[9] = { "pending", "wait", "Approved", "Email Ready", "Awaiting Payment", "Card Ready", "Active", "InActive", "Canceled" };
+std::string statuses[10] = { "pending", "wait", "Approved", "Email Ready", "Awaiting Payment", "Card Ready", "Active", "InActive", "Canceled", "Active Printed" };
 int autoNum = 0;
 int billingNum = 0;
 int nsImportNum = 0;
@@ -52,6 +52,7 @@ private:
     std::vector<std::string> familyNames;
     int changed;
     int dateSub;
+    std::string comment;
 
 public:
     int getMemberNumber();
@@ -70,6 +71,7 @@ public:
     std::string getAgency();
     std::string getProperty();
     std::string getFamilyName(int a);
+    std::string getComment();
     void setName(std::string a);
     void setPhone(std::string a);
     void setEmail(std::string a);
@@ -87,6 +89,7 @@ public:
     void setChange(int a);
     int getDateSub();
     void setDateSub(int a);
+    void setComment(std::string a);
 };
 
 int member::getDateSub()
@@ -174,6 +177,11 @@ std::string member::getFamilyName(int a)
     return familyNames[a];
 }
 
+std::string member::getComment(std::string a)
+{
+    return comment;
+}
+
 void member::setName(std::string a)
 {
     name = a;
@@ -252,6 +260,11 @@ void member::setChange(int a)
 void member::setDateSub(int a)
 {
     dateSub = a;
+}
+
+void member::setComment(std::string a)
+{
+    comment = a;
 }
 
 class property
@@ -446,18 +459,17 @@ void property::setGuests(int a)
     guests = a;
 }
 
-void updateNumbers()
+void importDataBase(std::vector<member>& importStack)
 {
-    //the goal of this is to update the global variables letting the system know how many are ready for said step
     //Import MemberDatabase
-    std::fstream file;
-    std::vector<member> importStack;
+    //added comment row15
+    std::fstream file3;
     member newMember;
     std::string line = "";
     std::string word = "";
     std::vector<std::string> row;
-    file.open(".\\database\\members.db");
-    while (std::getline(file, line))
+    file3.open(".\\database\\members.db");
+    while (std::getline(file3, line))
     {
         row.clear();
         std::stringstream ss(line);
@@ -482,9 +494,19 @@ void updateNumbers()
         newMember.setPrice(stoi(row[12]));
         newMember.setChange(stoi(row[13]));
         newMember.setDateSub(stoi(row[14]));
+        newMember.setComment(row[15]);
         importStack.push_back(newMember);
     }
-    file.close();
+    file3.close();
+}
+
+void updateNumbers()
+{
+    //the goal of this is to update the global variables letting the system know how many are ready for said step
+    //Import MemberDatabase
+    std::fstream file;
+    std::vector<member> importStack;
+    importDataBase(importStack);
 
     int head = 0;
     while (head < static_cast<int>(importStack.size()))
@@ -493,7 +515,11 @@ void updateNumbers()
         {
             autoNum++;
         }
-        if (importStack[head].getChange() == 1)
+        if (importStack[head].getChange() == 1 && importStack[head].getStatus() != 7 && importStack[head].getStatus() != 8)
+        {
+            nsImportNum++;
+        }
+        if ((importStack[head].getDatefrom() - 7) > currentDaySerial && importStack[head].getStatus == 6)
         {
             nsImportNum++;
         }
@@ -541,6 +567,26 @@ void serialToDMY(int nSerialDate, int& nDay, int& nMonth, int& nYear)
     l = int(j / 11);
     nMonth = j + 2 - (12 * l);
     nYear = 100 * (n - 49) + i + l;
+}
+
+std::string serialToString(int nSerialDate)
+{
+    std::string datex = "";
+    int nDay = 0;
+    int nMonth = 0;
+    int nYear = 0;
+    int l = nSerialDate + 68569 + 2415019;
+    int n = int((4 * l) / 146097);
+    l = l - int((146097 * n + 3) / 4);
+    int i = int((4000 * (l + 1)) / 1461001);
+    l = l - int((1461 * i) / 4) + 31;
+    int j = int((80 * l) / 2447);
+    nDay = l - int((2447 * j) / 80);
+    l = int(j / 11);
+    nMonth = j + 2 - (12 * l);
+    nYear = 100 * (n - 49) + i + l;
+    datex = std::to_string(nMonth) + "/" + std::to_string(nDay) + "/" +std::to_string(nYear);
+    return datex;
 }
 
 int DMYToSerial(std::string line)
@@ -655,13 +701,29 @@ std::string callNSImport(member xMember)
         serialToDMY(xMember.getDateSub(), nday, nmonth, nyear);
         subdate = std::to_string(nmonth) + "/" + std::to_string(nday) + "/" + std::to_string(nyear);
 
-        output = "Dummy,Dummy," + xMember.getName() + "," + fname + "," + lname + "," + "TM" + std::to_string(xMember.getMemberNumber()) + "G" + std::to_string(xMember.getFamilyNumber()) + "," + mtype + "," + statuses[convertStatus(xMember.getStatus())] + "," + xMember.getEmail() + "," + xMember.getPhone() + "," + indate + " - " + outdate + " (" + subdate + ")" + "," + "Do Not Send" + "," + "N/A" + "," + "28461" + "," + "BALD HEAD ISLAND" + "," + xMember.getProperty() + "," + "North Carolina" + "," + "United States" + "," + "Guest Membership Form" + "," + "Text Fields" + "," + "Membership" + "," + "Guest Member Fee" + "," + "String" + "," + std::to_string(xMember.getPrice());
+        output = "Dummy,Dummy," + xMember.getName() + "," + fname + "," + lname + "," + "TM" + std::to_string(xMember.getMemberNumber()) + "G" + std::to_string(xMember.getFamilyNumber()) + "," + mtype + "," + statuses[convertStatus(xMember.getStatus())] + "," + xMember.getEmail() + "," + xMember.getPhone() + "," + indate + " - " + outdate + " (" + subdate + ")" + "," + "Do Not Send" + "," + "N/A" + "," + "28461" + "," + "BALD HEAD ISLAND" + "," + xMember.getProperty() + "," + "North Carolina" + "," + "United States" + "," + "Guest Membership Form" + "," + "Text Fields" + "," + "Membership" + "," + "Guest Member Fee" + "," + "String" + "," + std::to_string(xMember.getPrice()) + "," + "Guest Membership Form" + "," + "Text Fields" + "," + "Membership" + "," + "GM COMMENTS" + "," + "String" + "," + xMember.getComment();
     }
     else
     {
-        output = "Dummy,Dummy," + xMember.getName() + "," + fname + "," + lname + "," + "T" + std::to_string(xMember.getMemberNumber()) + "M" + std::to_string(xMember.getFamilyNumber()) + "," + mtype + "," + statuses[convertStatus(xMember.getStatus())] + "," + xMember.getEmail() + "," + xMember.getPhone() + "," + indate + " - " + outdate + " (" + subdate + ")" + "," + "Do Not Send" + "," + "N/A" + "," + "28461" + "," + "BALD HEAD ISLAND" + "," + xMember.getProperty() + "," + "North Carolina" + "," + "United States" + "," + "Guest Membership Form" + "," + "Text Fields" + "," + "Membership" + "," + "Guest Member Fee" + "," + "String" + "," + std::to_string(xMember.getPrice());
+        output = "Dummy,Dummy," + xMember.getName() + "," + fname + "," + lname + "," + "T" + std::to_string(xMember.getMemberNumber()) + "M" + std::to_string(xMember.getFamilyNumber()) + "," + mtype + "," + statuses[convertStatus(xMember.getStatus())] + "," + xMember.getEmail() + "," + xMember.getPhone() + "," + indate + " - " + outdate + " (" + subdate + ")" + "," + "Do Not Send" + "," + "N/A" + "," + "28461" + "," + "BALD HEAD ISLAND" + "," + xMember.getProperty() + "," + "North Carolina" + "," + "United States" + "," + "Guest Membership Form" + "," + "Text Fields" + "," + "Membership" + "," + "Guest Member Fee" + "," + "String" + "," + std::to_string(xMember.getPrice()) + "," + "Guest Membership Form" + "," + "Text Fields" + "," + "Membership" + "," + "GM COMMENTS" + "," + "String" + "," + xMember.getComment();
     }
     return output;
+}
+
+void ExportDBCSV(std::vector<member> importStack)
+{
+    std::fstream filex;
+    filex.open(".\\Report.csv", std::ios::out | std::ios::app);
+    std::cout << "\nDATABASE SAVING...PLEASE WAIT\n";
+    int head = 0;
+    while (head < importStack.size())
+    {
+        filex << importStack[head].getMemberNumber() << "," << importStack[head].getFamilyNumber() << "," << importStack[head].getStatus() << "," << importStack[head].getName() << "," << serialToString(importStack[head].getDatefrom()) << "," << serialToString(importStack[head].getDateTo()) << "," << importStack[head].getPhone() << "," << importStack[head].getEmail() << "," << importStack[head].getAgency() << "," << importStack[head].getProperty() << "," << importStack[head].getBedrooms() << "," << importStack[head].getpropertyID() << "," << importStack[head].getPrice() << "," << importStack[head].getChange() << "," << importStack[head].getDateSub() << "," << importStack[head].getComment() << std::endl;
+        head++;
+    }
+    filex.flush();
+    filex.close();
+    std::cout << "\n\nDATABASE SAVED!\n\n";
 }
 
 void callExportDB(std::vector<member> importStack, int mode)
@@ -671,6 +733,10 @@ void callExportDB(std::vector<member> importStack, int mode)
     {
         filex.open(".\\database\\members.db", std::ios::out | std::ios::app);
     }
+    if else(mode == 2)
+    {
+        filex.open(".\\Report.csv", std::ios::out | std::ios::app);
+    }
     else
     {
         filex.open(".\\database\\members.db", std::ios::out | std::ios::trunc);
@@ -679,7 +745,7 @@ void callExportDB(std::vector<member> importStack, int mode)
     int head = 0;
     while (head < importStack.size())
     {
-        filex << importStack[head].getMemberNumber() << "," << importStack[head].getFamilyNumber() << "," << importStack[head].getStatus() << "," << importStack[head].getName() << "," << importStack[head].getDatefrom() << "," << importStack[head].getDateTo() << "," << importStack[head].getPhone() << "," << importStack[head].getEmail() << "," << importStack[head].getAgency() << "," << importStack[head].getProperty() << "," << importStack[head].getBedrooms() << "," << importStack[head].getpropertyID() << "," << importStack[head].getPrice() << "," << importStack[head].getChange() << "," << importStack[head].getDateSub() << std::endl;
+        filex << importStack[head].getMemberNumber() << "," << importStack[head].getFamilyNumber() << "," << importStack[head].getStatus() << "," << importStack[head].getName() << "," << importStack[head].getDatefrom() << "," << importStack[head].getDateTo() << "," << importStack[head].getPhone() << "," << importStack[head].getEmail() << "," << importStack[head].getAgency() << "," << importStack[head].getProperty() << "," << importStack[head].getBedrooms() << "," << importStack[head].getpropertyID() << "," << importStack[head].getPrice() << "," << importStack[head].getChange() << "," << importStack[head].getDateSub() << "," << importStack[head].getComment() << std::endl;
         head++;
     }
     filex.flush();
@@ -952,6 +1018,7 @@ void importNewMembers()
         newMember.setPrice(0);
         newMember.setPropertyID(0);
         newMember.setChange(0);
+        newMember.setComment("");
         for (int x = 0; x <= guestNum; x++)
         {
             newMember.setFamilyNumber(x);
@@ -1083,35 +1150,7 @@ void processPendingAuto()
     std::string line = "";
     std::string word = "";
     std::vector<std::string> row;
-    file.open(".\\database\\members.db");
-    while (std::getline(file, line))
-    {
-        row.clear();
-        std::stringstream ss(line);
-        while (std::getline(ss, word, ','))
-        {
-            row.push_back(word);
-        }
-
-        //set member
-        newMember.setMemberNumber(stoi(row[0]));
-        newMember.setFamilyNumber(stoi(row[1]));
-        newMember.setStatus(stoi(row[2]));
-        newMember.setName(row[3]);
-        newMember.setDateFrom(stoi(row[4]));
-        newMember.setDateTo(stoi(row[5]));
-        newMember.setPhone(row[6]);
-        newMember.setEmail(row[7]);
-        newMember.setAgency(row[8]);
-        newMember.setProperty(row[9]);
-        newMember.setBedrooms(stoi(row[10]));
-        newMember.setPropertyID(stoi(row[11]));
-        newMember.setPrice(stoi(row[12]));
-        newMember.setChange(stoi(row[13]));
-        newMember.setDateSub(stoi(row[14]));
-        importStack.push_back(newMember);
-    }
-    file.close();
+    importDataBase(importStack);
     //set price of head member
     int head = 0;
     int head2 = 0;
@@ -1127,6 +1166,8 @@ void processPendingAuto()
             std::cout << "HEAD MEMBER FOUND\n";
             daysStay = importStack[head].getDateTo() - importStack[head].getDatefrom();
             //count how many are in the family
+            //add one to daystay to account for day arrived
+            daysStay++;
             famNum = 0;
             head2 = 0;
             while (head2 < importStack.size())
@@ -1390,6 +1431,9 @@ void processPendingAuto()
                     updateCap(dayCheck, (curCap + famNum));
                     dayCheck++;
                 }
+                //add comment approval here
+                std::cout << "\n" + importStack[head].getName() + "\n" + importStack[head].getProperty() + "\nPLEASE ENTER COMMENT";
+                importStack[head].setComment(getUserInput());
             }
         }
         head++;
@@ -1422,46 +1466,31 @@ void nsExport()
     //Import MemberDatabase
     std::fstream file;
     std::vector<member> importStack;
-    member newMember;
-    std::string line = "";
-    std::string word = "";
-    std::vector<std::string> row;
-    file.open(".\\database\\members.db");
-    while (std::getline(file, line))
-    {
-        row.clear();
-        std::stringstream ss(line);
-        while (std::getline(ss, word, ','))
-        {
-            row.push_back(word);
-        }
-
-        //set member
-        newMember.setMemberNumber(stoi(row[0]));
-        newMember.setFamilyNumber(stoi(row[1]));
-        newMember.setStatus(stoi(row[2]));
-        newMember.setName(row[3]);
-        newMember.setDateFrom(stoi(row[4]));
-        newMember.setDateTo(stoi(row[5]));
-        newMember.setPhone(row[6]);
-        newMember.setEmail(row[7]);
-        newMember.setAgency(row[8]);
-        newMember.setProperty(row[9]);
-        newMember.setBedrooms(stoi(row[10]));
-        newMember.setPropertyID(stoi(row[11]));
-        newMember.setPrice(stoi(row[12]));
-        newMember.setChange(stoi(row[13]));
-        newMember.setDateSub(stoi(row[14]));
-        importStack.push_back(newMember);
-    }
-    file.close();
-
+    importDataBase(importStack);
+    int aday = 0;
+    int amonth = 0;
+    int ayear = 0;
+   
+    getCurrentTime(aday, amonth, ayear);
+    std::string currentDateMDY = std::to_string(amonth) + "/" + std::to_string(aday) + "/" + std::to_string(ayear);
+    int currentDaySerial = DMYToSerial(currentDateMDY);
     //Add all changed to file for export for Northstar and set to no change
     file.open("nsimport.csv", std::ios::out | std::ios::app);
     int head = 0;
     //file << "Header" << std::endl;
     while (head < importStack.size())
     {
+        if (importStack[head].getDateTo() < currentDaySerial)
+        {
+            importStack[head].setStatus(7);
+            importStack[head].setChange(1);
+        }
+        //Check If within a week of arrival
+        if ((importStack[head].getDatefrom() - 7) > currentDaySerial && importStack[head].getStatus == 6)
+        {
+            importStack[head].setStatus(5);
+            importStack[head].setChange(1);
+        }
         if (importStack[head].getChange() == 1)
         {
             file << callNSImport(importStack[head]) << std::endl;
@@ -1470,7 +1499,6 @@ void nsExport()
             {
                 importStack[head].setChange(3);
             }
-            
         }
         head++;
     }
@@ -1488,39 +1516,7 @@ void forcedExport()
     //Import MemberDatabase
     std::fstream file;
     std::vector<member> importStack;
-    member newMember;
-    std::string line = "";
-    std::string word = "";
-    std::vector<std::string> row;
-    file.open(".\\database\\members.db");
-    while (std::getline(file, line))
-    {
-        row.clear();
-        std::stringstream ss(line);
-        while (std::getline(ss, word, ','))
-        {
-            row.push_back(word);
-        }
-
-        //set member
-        newMember.setMemberNumber(stoi(row[0]));
-        newMember.setFamilyNumber(stoi(row[1]));
-        newMember.setStatus(stoi(row[2]));
-        newMember.setName(row[3]);
-        newMember.setDateFrom(stoi(row[4]));
-        newMember.setDateTo(stoi(row[5]));
-        newMember.setPhone(row[6]);
-        newMember.setEmail(row[7]);
-        newMember.setAgency(row[8]);
-        newMember.setProperty(row[9]);
-        newMember.setBedrooms(stoi(row[10]));
-        newMember.setPropertyID(stoi(row[11]));
-        newMember.setPrice(stoi(row[12]));
-        newMember.setChange(stoi(row[13]));
-        newMember.setDateSub(stoi(row[14]));
-        importStack.push_back(newMember);
-    }
-    file.close();
+    importDataBase(importStack);
 
     //Add all changed to file for export for Northstar and set to no change
     file.open("nsimport.csv", std::ios::out | std::ios::app);
@@ -1542,41 +1538,8 @@ void forcedExport()
 void approvedImport()
 {
     //Import MemberDatabase
-    std::fstream file;
     std::vector<member> importStack;
-    member newMember;
-    std::string line = "";
-    std::string word = "";
-    std::vector<std::string> row;
-    file.open(".\\database\\members.db");
-    while (std::getline(file, line))
-    {
-        row.clear();
-        std::stringstream ss(line);
-        while (std::getline(ss, word, ','))
-        {
-            row.push_back(word);
-        }
-
-        //set member
-        newMember.setMemberNumber(stoi(row[0]));
-        newMember.setFamilyNumber(stoi(row[1]));
-        newMember.setStatus(stoi(row[2]));
-        newMember.setName(row[3]);
-        newMember.setDateFrom(stoi(row[4]));
-        newMember.setDateTo(stoi(row[5]));
-        newMember.setPhone(row[6]);
-        newMember.setEmail(row[7]);
-        newMember.setAgency(row[8]);
-        newMember.setProperty(row[9]);
-        newMember.setBedrooms(stoi(row[10]));
-        newMember.setPropertyID(stoi(row[11]));
-        newMember.setPrice(stoi(row[12]));
-        newMember.setChange(stoi(row[13]));
-        newMember.setDateSub(stoi(row[14]));
-        importStack.push_back(newMember);
-    }
-    file.close();
+    importDatabase(importStack);
 
 
 //change statuses if imported
@@ -1604,6 +1567,10 @@ void approvedImport()
         {
             importStack[head].setChange(0);
         }
+        if (importStack[head].getStatus() == 7 && importStack[head].getChange() == 2)
+        {
+            importStack[head].setChange(0);
+        }
          head++;
     }
 
@@ -1614,44 +1581,29 @@ void approvedImport()
     std::remove("nsimport.csv");
 }
 
+void cardPrinted()
+{
+    std::vector<member> importStack;
+    importDataBase(importStack);
+    int head = 0;
+    while (head < importStack.size())
+    {
+       if (importStack[head].getStatus() == 5 && importStack[head].getChange() == 2)
+       {
+           importStack[head].setStatus(9);
+           importStack[head].setChange(1);
+       }
+        head++;
+    }
+    callExportDB(importStack,1);
+}
+
 void generateEmail()
 {
     //Import MemberDatabase
     std::fstream file;
     std::vector<member> importStack;
-    member newMember;
-    std::string line = "";
-    std::string word = "";
-    std::vector<std::string> row;
-    file.open(".\\database\\members.db");
-    while (std::getline(file, line))
-    {
-        row.clear();
-        std::stringstream ss(line);
-        while (std::getline(ss, word, ','))
-        {
-            row.push_back(word);
-        }
-
-        //set member
-        newMember.setMemberNumber(stoi(row[0]));
-        newMember.setFamilyNumber(stoi(row[1]));
-        newMember.setStatus(stoi(row[2]));
-        newMember.setName(row[3]);
-        newMember.setDateFrom(stoi(row[4]));
-        newMember.setDateTo(stoi(row[5]));
-        newMember.setPhone(row[6]);
-        newMember.setEmail(row[7]);
-        newMember.setAgency(row[8]);
-        newMember.setProperty(row[9]);
-        newMember.setBedrooms(stoi(row[10]));
-        newMember.setPropertyID(stoi(row[11]));
-        newMember.setPrice(stoi(row[12]));
-        newMember.setChange(stoi(row[13]));
-        newMember.setDateSub(stoi(row[14]));
-        importStack.push_back(newMember);
-    }
-    file.close();
+    importDataBase(importStack);
 
     //Add all changed to file for email send
     file.open("email.csv", std::ios::out | std::ios::trunc);
@@ -1683,39 +1635,7 @@ void emailSent()
     //Import MemberDatabase
     std::fstream file;
     std::vector<member> importStack;
-    member newMember;
-    std::string line = "";
-    std::string word = "";
-    std::vector<std::string> row;
-    file.open(".\\database\\members.db");
-    while (std::getline(file, line))
-    {
-        row.clear();
-        std::stringstream ss(line);
-        while (std::getline(ss, word, ','))
-        {
-            row.push_back(word);
-        }
-
-        //set member
-        newMember.setMemberNumber(stoi(row[0]));
-        newMember.setFamilyNumber(stoi(row[1]));
-        newMember.setStatus(stoi(row[2]));
-        newMember.setName(row[3]);
-        newMember.setDateFrom(stoi(row[4]));
-        newMember.setDateTo(stoi(row[5]));
-        newMember.setPhone(row[6]);
-        newMember.setEmail(row[7]);
-        newMember.setAgency(row[8]);
-        newMember.setProperty(row[9]);
-        newMember.setBedrooms(stoi(row[10]));
-        newMember.setPropertyID(stoi(row[11]));
-        newMember.setPrice(stoi(row[12]));
-        newMember.setChange(stoi(row[13]));
-        newMember.setDateSub(stoi(row[14]));
-        importStack.push_back(newMember);
-    }
-    file.close();
+    importDataBase(importStack);
     std::cout << "\n\nDatabase Closed\n\n";
     //open database file and add members to it
     int head = 0;
@@ -1752,39 +1672,7 @@ void billing()
     //Import MemberDatabase
     std::fstream file;
     std::vector<member> importStack;
-    member newMember;
-    std::string line = "";
-    std::string word = "";
-    std::vector<std::string> row;
-    file.open(".\\database\\members.db");
-    while (std::getline(file, line))
-    {
-        row.clear();
-        std::stringstream ss(line);
-        while (std::getline(ss, word, ','))
-        {
-            row.push_back(word);
-        }
-
-        //set member
-        newMember.setMemberNumber(stoi(row[0]));
-        newMember.setFamilyNumber(stoi(row[1]));
-        newMember.setStatus(stoi(row[2]));
-        newMember.setName(row[3]);
-        newMember.setDateFrom(stoi(row[4]));
-        newMember.setDateTo(stoi(row[5]));
-        newMember.setPhone(row[6]);
-        newMember.setEmail(row[7]);
-        newMember.setAgency(row[8]);
-        newMember.setProperty(row[9]);
-        newMember.setBedrooms(stoi(row[10]));
-        newMember.setPropertyID(stoi(row[11]));
-        newMember.setPrice(stoi(row[12]));
-        newMember.setChange(stoi(row[13]));
-        newMember.setDateSub(stoi(row[14]));
-        importStack.push_back(newMember);
-    }
-    file.close();
+    importDataBase(importStack);
     std::cout << "\nLoaded File\n\n";
     int head = 0;
     while (head < importStack.size())
@@ -1867,6 +1755,141 @@ EXIT_LOOP:
 
     //open database file and add members to it
     callExportDB(importStack,1);
+}
+
+void databaseCSV()
+{
+    //imports database then uses callexport to export to root as csv
+    std::vector<member> importStack;
+    importDataBase(importStack);
+    ExportDBCSV(importStack);
+}
+
+void reportByStatus()
+{
+    std::string menuOptions = "";
+    std::vector<member> importStack;
+    importDataBase(importStack);
+    int selection = 0;
+    int daya = 0;
+    int montha = 0;
+    int yeara = 0;
+    int dayb = 0;
+    int monthb = 0;
+    int yearb = 0;
+    int statusa = 0;
+    int seriala = 0;
+    int serialb = 0;
+    int head = 0;
+    int head2 = 0;
+    int count = 0;
+    std::string datea = "";
+    std::string dateb = "";
+    REPORT_BY_STATUS_RESTART:
+    menuOptions = "PLEASE SELECT STATUS TO SEARCH BY,PENDING,WAIT,APPROVED,EMAIL READY,AWAITING PAYMENT,CARD READY,ACTIVE,INACTIVE,CANCELED,ACTIVE PRINTED,PAID";
+    statusa = menuSystem(5, menuOptions);
+    menuOptions = "PLEASE SELECT THE START MONTH,JANUARY,FEBUARY,MARCH,APRIL,MAY,JUNE,JULY,AUGUST,SEPTEMBER,OCTOBER,NOVEMBER,DECEMBER";
+    montha = menuSystem(5, menuOptions);
+    montha++;
+    std::cout << "\nPLEASE ENTER THE START DAY: ";
+    try
+    {
+        daya = stoi(getUserInput());
+    }
+    catch (...)
+    {
+        std::cout << "\n!!INVALID!!\n\n";
+        goto REPORT_BY_STATUS_RESTART;
+    }
+    std::cout << "\nPLEASE ENTER THE START YEAR: ";
+    try
+    {
+        yeara = stoi(getUserInput());
+    }
+    catch (...)
+    {
+        std::cout << "\n!!INVALID!!\n\n";
+        goto REPORT_BY_STATUS_RESTART;
+    }
+    menuOptions = "PLEASE SELECT THE END MONTH,JANUARY,FEBUARY,MARCH,APRIL,MAY,JUNE,JULY,AUGUST,SEPTEMBER,OCTOBER,NOVEMBER,DECEMBER";
+    monthb = menuSystem(5, menuOptions);
+    monthb++;
+    std::cout << "\nPLEASE ENTER THE END DAY: ";
+    try
+    {
+        dayb = stoi(getUserInput());
+    }
+    catch (...)
+    {
+        std::cout << "\n!!INVALID!!\n\n";
+        goto REPORT_BY_STATUS_RESTART;
+    }
+    std::cout << "\nPLEASE ENTER THE END YEAR: ";
+    try
+    {
+        yearb = stoi(getUserInput());
+    }
+    catch (...)
+    {
+        std::cout << "\n!!INVALID!!\n\n";
+        goto REPORT_BY_STATUS_RESTART;
+    }
+    datea = std::to_string(montha) + "/" + std::to_string(daya) + "/" + std::to_string(yeara);
+    try 
+    {
+        seriala = DMYToSerial(datea);
+    } 
+    catch (...)
+    {
+        std::cout << "\n!!INVALID DATE!!\n\n"
+        goto REPORT_BY_STATUS_RESTART;
+    }
+    dateb = std::to_string(monthb) + "/" + std::to_string(dayb) + "/" + std::to_string(yearb);
+    try
+    {
+        serialb = DMYToSerial(dateb);
+    }
+    catch (...)
+    {
+        std::cout << "\n!!INVALID DATE!!\n\n"
+        goto REPORT_BY_STATUS_RESTART;
+    }
+    std::fstream filex;
+    filex.open(".\\NumberReport.csv", std::ios::out | std::ios::app);
+    head2 = seriala;
+    //loop for counting all on those days
+    while (head2 >= seriala && head2 <= serialb)
+    {
+        head = 0;
+        count = 0;
+        while (head < importStack.size())
+        {
+            if (statusa == 10)
+            {
+                if (importStack[head].getDatefrom() <= head2 && importStack[head].getDateTo() >= head2)
+                {
+                    if (importStack[head].getStatus == 5 || importStack[head].getStatus == 6 || importStack[head].getStatus == 9)
+                    {
+                        count++;
+                    }
+                }
+            }
+            else if (importStack[head].getDatefrom() <= head2 && importStack[head].getDateTo() >= head2 && importStack[head].getStatus() == statusa)
+            {
+                count++;
+            }
+            head++;
+        }
+        //conver serial back to MDY
+        //serialToDMY(head2,daya,montha,yeara);
+        //write to file
+        filex << serialToString(head2) << "," << std::to_string(count) << std::endl;
+        std::cout << "\n" << serialToString(head2) << " - " << count;
+        head2++;
+    }
+    filex.flush();
+    filex.close();
+    std::cout << "\nREPORT COMPLETE\n";
 }
 
 //Generic menu system, tell how many options you have and pass whole string seperatted by commas
@@ -1955,35 +1978,7 @@ void memberSearch()
     std::string line = "";
     std::string word = "";
     std::vector<std::string> row;
-    file.open(".\\database\\members.db");
-    while (std::getline(file, line))
-    {
-        row.clear();
-        std::stringstream ss(line);
-        while (std::getline(ss, word, ','))
-        {
-            row.push_back(word);
-        }
-
-        //set member
-        newMember.setMemberNumber(stoi(row[0]));
-        newMember.setFamilyNumber(stoi(row[1]));
-        newMember.setStatus(stoi(row[2]));
-        newMember.setName(row[3]);
-        newMember.setDateFrom(stoi(row[4]));
-        newMember.setDateTo(stoi(row[5]));
-        newMember.setPhone(row[6]);
-        newMember.setEmail(row[7]);
-        newMember.setAgency(row[8]);
-        newMember.setProperty(row[9]);
-        newMember.setBedrooms(stoi(row[10]));
-        newMember.setPropertyID(stoi(row[11]));
-        newMember.setPrice(stoi(row[12]));
-        newMember.setChange(stoi(row[13]));
-        newMember.setDateSub(stoi(row[14]));
-        importStack.push_back(newMember);
-    }
-    file.close();
+    importDataBase(importStack);
 SEARCH_BACK:
     std::cout << "\n\nPLEASE ENTER THE MEMBER NUMBER ONLY: ";
     typedsel = stoi(getUserInput());
@@ -2060,7 +2055,7 @@ SEARCH_BACK:
     breakout = 0;
     while (breakout == 0)
     {
-        std::string menuOptions = "MEMBER INFORMATION,NAME," + importStack[selectedHead].getName() + ",PRICE," + std::to_string(importStack[selectedHead].getPrice()) + ",DATE FROM," + std::to_string(fromMonth) + "/" + std::to_string(fromDay) + "/" + std::to_string(fromYear) + ",DATE TO," + std::to_string(toMonth) + "/" + std::to_string(toDay) + "/" + std::to_string(toYear) + ",DATE SUBMITTED," + std::to_string(subMonth) + "/" + std::to_string(subDay) + "/" + std::to_string(subYear) + ",PHONE," + importStack[selectedHead].getPhone() + ",EMAIL," + importStack[selectedHead].getEmail() + ",PROPERTY," + importStack[selectedHead].getProperty() + ",PROPERTY ID," + std::to_string(importStack[selectedHead].getpropertyID()) + ",AGENCY," + importStack[selectedHead].getAgency() + ",BEDROOMS," + std::to_string(importStack[selectedHead].getBedrooms()) + ",MEMBER STATUS," + statuses[importStack[selectedHead].getStatus()] + ",CHANGED," + std::to_string(importStack[selectedHead].getChange()) + ",SAVE,SAVES ONLY,SEARCH,BACK TO SEARCH,EXPORT,SAVES AND ADDS TO NSIMPORT,DELETE,DELETES CURRENT MEMBER,DELETE FAMILY,DELETES WHOLE FAMILY WITH CURRENT MEMBER NUMBER,BILLING,CONFIRM OR OVERIDE BILLING,QUIT";
+        std::string menuOptions = "MEMBER INFORMATION,NAME," + importStack[selectedHead].getName() + ",PRICE," + std::to_string(importStack[selectedHead].getPrice()) + ",DATE FROM," + std::to_string(fromMonth) + "/" + std::to_string(fromDay) + "/" + std::to_string(fromYear) + ",DATE TO," + std::to_string(toMonth) + "/" + std::to_string(toDay) + "/" + std::to_string(toYear) + ",DATE SUBMITTED," + std::to_string(subMonth) + "/" + std::to_string(subDay) + "/" + std::to_string(subYear) + ",PHONE," + importStack[selectedHead].getPhone() + ",EMAIL," + importStack[selectedHead].getEmail() + ",PROPERTY," + importStack[selectedHead].getProperty() + ",PROPERTY ID," + std::to_string(importStack[selectedHead].getpropertyID()) + ",AGENCY," + importStack[selectedHead].getAgency() + ",BEDROOMS," + std::to_string(importStack[selectedHead].getBedrooms()) + ",MEMBER STATUS," + statuses[importStack[selectedHead].getStatus()] + ",CHANGED," + std::to_string(importStack[selectedHead].getChange()) + ",SAVE,SAVES ONLY,SEARCH,BACK TO SEARCH,EXPORT,SAVES AND ADDS TO NSIMPORT,DELETE,DELETES CURRENT MEMBER,DELETE FAMILY,DELETES WHOLE FAMILY WITH CURRENT MEMBER NUMBER,BILLING,CONFIRM OR OVERIDE BILLING,COMMENTS," + importStack[selectedhead].getComments() + ",QUIT";
         selection = menuSystem(1, menuOptions);
         switch (selection)
         {
@@ -2263,7 +2258,12 @@ SEARCH_BACK:
             break;
         }
         case 19:
-            //New Quit
+            //add comment approval here
+            std::cout << "\n" + importStack[head].getName() + "\n" + importStack[head].getProperty() + "\nPLEASE ENTER COMMENT";
+            importStack[head].setComment(getUserInput());
+            break;
+        case 20:
+                //QUIT
             goto SEARCH_EXIT;
             break;
         }
@@ -2327,7 +2327,7 @@ void vexport()
     while (breakout == 0)
     {
         updateNumbers();
-        std::string menuOptions = "EXPORT MENU,NORTHSTAR," + std::to_string(nsImportNum) + ",NORTHSTAR IMPORTED," + std::to_string(nsImportedNum) + ",EMAIL," + std::to_string(emailGenNum) + ",EMAIL SENT," + std::to_string(emailSentNum) + ",BACK";
+        std::string menuOptions = "EXPORT MENU,NORTHSTAR," + std::to_string(nsImportNum) + ",NORTHSTAR IMPORTED," + std::to_string(nsImportedNum) + ",EMAIL," + std::to_string(emailGenNum) + ",EMAIL SENT," + std::to_string(emailSentNum) + ",CARDS PRINTED," + "NUMBER HERE" + ",BACK";
         int selection = menuSystem(1, menuOptions);
         switch (selection)
         {
@@ -2350,6 +2350,9 @@ void vexport()
             emailSent();
             break;
         case 4:
+            cardPrinted();
+            break;
+        case 5:
             breakout = 1;
             break;
         }
@@ -2406,9 +2409,34 @@ void importMenu()
     }
 }
 
+void reportMenu()
+{
+    int breakout = 0;
+    while (breakout == 0)
+    {
+        std::string menuOptions = "REPORTING MENU,DATABASE REPORT,NUMBERS BY STATUS,BACK";
+        int selection = menuSystem(5,menuOptions);
+        switch (selection)
+        {
+            case 0:
+                //export database as csv
+                databaseCSV();
+                break;
+            case 1:
+                //Report of member numbers by status
+                reportByStatus();
+                break;
+            case 2:
+                //quit
+                breakout = 1;
+                break;
+        }
+    }
+}
+
 void selections()
 {
-    std::string menuOptions = "MAIN MENU,IMPORT,PROCESS,EXPORT,PROPERTIES,SEARCH,FORCE EXPORT,QUIT";
+    std::string menuOptions = "ERKEL MAIN MENU,IMPORT,PROCESS,EXPORT,PROPERTIES,REPORT,SEARCH,FORCE EXPORT,QUIT";
     int selection = menuSystem(5, menuOptions);
     switch (selection)
     {
@@ -2425,12 +2453,15 @@ void selections()
         propertiesMenu();
         break;
     case 4:
-        memberSearch();
+        reportMenu();
         break;
     case 5:
-        forcedExport();
+        memberSearch();
         break;
     case 6:
+        forcedExport();
+        break;
+    case 7:
         exit(0);
         break;
     }
@@ -2440,7 +2471,7 @@ int main()
 {
     //new funtion to count the database and update status numbers for menu counts
     int loop = 1;
-
+    std::cout << "\nWELCOME TO ERKEL\n";
     //open up the list of properties into vector
     while (loop > 0)
     {
