@@ -20,6 +20,7 @@ int nsImportNum = 0;
 int emailGenNum = 0;
 int emailSentNum = 0;
 int nsImportedNum = 0;
+int cardnum = 0;
 
 enum status
 {
@@ -177,7 +178,7 @@ std::string member::getFamilyName(int a)
     return familyNames[a];
 }
 
-std::string member::getComment(std::string a)
+std::string member::getComment()
 {
     return comment;
 }
@@ -459,7 +460,37 @@ void property::setGuests(int a)
     guests = a;
 }
 
-void importDataBase(std::vector<member>& importStack)
+void getCurrentTime(int& nday, int& nmonth, int& nyear)
+{
+    time_t t = time(0);   // get time now
+    struct tm now;
+    localtime_s(&now, &t);
+    nyear = (now.tm_year + 1900);
+    nmonth = (now.tm_mon + 1);
+    nday = now.tm_mday;
+}
+
+int DMYToSerial(std::string line)
+{
+    std::vector<std::string> row;
+    std::string word = "";
+    std::stringstream ss(line);
+    while (std::getline(ss, word, '/'))
+    {
+        row.push_back(word);
+    }
+    int nMonth = stoi(row[0]);
+    int nDay = stoi(row[1]);
+    int nYear = stoi(row[2]);
+
+    // DMY to Modified Julian calculated with an extra subtraction of 2415019.
+    return int((1461 * (nYear + 4800 + int((nMonth - 14) / 12))) / 4) +
+        int((367 * (nMonth - 2 - 12 * ((nMonth - 14) / 12))) / 12) -
+        int((3 * (int((nYear + 4900 + int((nMonth - 14) / 12)) / 100))) / 4) +
+        nDay - 2415019 - 32075;
+}
+
+void importDataBase(std::vector<member>& newStack)
 {
     //Import MemberDatabase
     //added comment row15
@@ -477,7 +508,6 @@ void importDataBase(std::vector<member>& importStack)
         {
             row.push_back(word);
         }
-
         //set member
         newMember.setMemberNumber(stoi(row[0]));
         newMember.setFamilyNumber(stoi(row[1]));
@@ -495,7 +525,7 @@ void importDataBase(std::vector<member>& importStack)
         newMember.setChange(stoi(row[13]));
         newMember.setDateSub(stoi(row[14]));
         newMember.setComment(row[15]);
-        importStack.push_back(newMember);
+        newStack.push_back(newMember);
     }
     file3.close();
 }
@@ -507,8 +537,12 @@ void updateNumbers()
     std::fstream file;
     std::vector<member> importStack;
     importDataBase(importStack);
-
+    int nday = 0;
+    int nmonth = 0;
+    int nyear = 0;
+    getCurrentTime(nday, nmonth, nyear);
     int head = 0;
+    std::cout << "\nCOUNTING\n";
     while (head < static_cast<int>(importStack.size()))
     {
         if (importStack[head].getStatus() == 0)
@@ -519,9 +553,9 @@ void updateNumbers()
         {
             nsImportNum++;
         }
-        if ((importStack[head].getDatefrom() - 7) > currentDaySerial && importStack[head].getStatus == 6)
+        if ((importStack[head].getDatefrom() - 7) <=  DMYToSerial(std::to_string(nmonth) + "/" + std::to_string(nday) + "/" + std::to_string(nyear)) && importStack[head].getStatus() == 6)
         {
-            nsImportNum++;
+            cardnum++;
         }
         if (importStack[head].getChange() == 0 && importStack[head].getStatus() == 3)
         {
@@ -536,7 +570,7 @@ void updateNumbers()
         {
             billingNum++;
         }
-        if (importStack[head].getChange() == 2)
+        if (importStack[head].getChange() == 2 && importStack[head].getStatus() != 5)
         {
             nsImportedNum++;
         }
@@ -552,6 +586,7 @@ void resetnums()
     emailGenNum = 0;
     emailSentNum = 0;
     billingNum = 0;
+    cardnum = 0;
 }
 
 void serialToDMY(int nSerialDate, int& nDay, int& nMonth, int& nYear)
@@ -587,26 +622,6 @@ std::string serialToString(int nSerialDate)
     nYear = 100 * (n - 49) + i + l;
     datex = std::to_string(nMonth) + "/" + std::to_string(nDay) + "/" +std::to_string(nYear);
     return datex;
-}
-
-int DMYToSerial(std::string line)
-{
-    std::vector<std::string> row;
-    std::string word = "";
-    std::stringstream ss(line);
-    while (std::getline(ss, word, '/'))
-    {
-        row.push_back(word);
-    }
-    int nMonth = stoi(row[0]);
-    int nDay = stoi(row[1]);
-    int nYear = stoi(row[2]);
-
-    // DMY to Modified Julian calculated with an extra subtraction of 2415019.
-    return int((1461 * (nYear + 4800 + int((nMonth - 14) / 12))) / 4) +
-        int((367 * (nMonth - 2 - 12 * ((nMonth - 14) / 12))) / 12) -
-        int((3 * (int((nYear + 4900 + int((nMonth - 14) / 12)) / 100))) / 4) +
-        nDay - 2415019 - 32075;
 }
 
 int removeTime(std::string line)
@@ -713,6 +728,10 @@ std::string callNSImport(member xMember)
 void ExportDBCSV(std::vector<member> importStack)
 {
     std::fstream filex;
+    filex.open(".\\Report.csv", std::ios::out | std::ios::trunc);
+    filex << "";
+    filex.flush();
+    filex.close();
     filex.open(".\\Report.csv", std::ios::out | std::ios::app);
     std::cout << "\nDATABASE SAVING...PLEASE WAIT\n";
     int head = 0;
@@ -729,11 +748,12 @@ void ExportDBCSV(std::vector<member> importStack)
 void callExportDB(std::vector<member> importStack, int mode)
 {
     std::fstream filex;
+    std::cout << "\nDATABASE OPENING...PLEASE WAIT\n";
     if (mode == 0)
     {
         filex.open(".\\database\\members.db", std::ios::out | std::ios::app);
     }
-    if else(mode == 2)
+    else if(mode == 2)
     {
         filex.open(".\\Report.csv", std::ios::out | std::ios::app);
     }
@@ -751,16 +771,6 @@ void callExportDB(std::vector<member> importStack, int mode)
     filex.flush();
     filex.close();
     std::cout << "\n\nDATABASE SAVED!\n\n";
-}
-
-void getCurrentTime(int& nday, int& nmonth, int& nyear)
-{
-    time_t t = time(0);   // get time now
-    struct tm now;
-    localtime_s(&now, &t);
-    nyear = (now.tm_year + 1900);
-    nmonth = (now.tm_mon + 1);
-    nday = now.tm_mday;
 }
 
 std::string printPropertiesMenu()
@@ -1432,8 +1442,15 @@ void processPendingAuto()
                     dayCheck++;
                 }
                 //add comment approval here
-                std::cout << "\n" + importStack[head].getName() + "\n" + importStack[head].getProperty() + "\nPLEASE ENTER COMMENT";
-                importStack[head].setComment(getUserInput());
+                if (importStack[head].getFamilyNumber() == 0)
+                {
+                    std::cout << "\n" + importStack[head].getName() + "\n" + importStack[head].getProperty() + "\nPLEASE ENTER COMMENT";
+                    importStack[head].setComment(getUserInput());
+                }
+                else
+                {
+                    importStack[head].setComment("Family");
+                }
             }
         }
         head++;
@@ -1470,7 +1487,7 @@ void nsExport()
     int aday = 0;
     int amonth = 0;
     int ayear = 0;
-   
+    std::cout << "\nSTARTING EXPORT\n";
     getCurrentTime(aday, amonth, ayear);
     std::string currentDateMDY = std::to_string(amonth) + "/" + std::to_string(aday) + "/" + std::to_string(ayear);
     int currentDaySerial = DMYToSerial(currentDateMDY);
@@ -1486,7 +1503,7 @@ void nsExport()
             importStack[head].setChange(1);
         }
         //Check If within a week of arrival
-        if ((importStack[head].getDatefrom() - 7) > currentDaySerial && importStack[head].getStatus == 6)
+        if ((importStack[head].getDatefrom() - 7) > currentDaySerial && importStack[head].getStatus() == 6)
         {
             importStack[head].setStatus(5);
             importStack[head].setChange(1);
@@ -1508,7 +1525,7 @@ void nsExport()
     //open database file and add members to it
     callExportDB(importStack,1);
    // std::remove("import.csv");
-
+    std::cout << "\nFINISHED CALL\n";
 }
 
 void forcedExport()
@@ -1539,7 +1556,7 @@ void approvedImport()
 {
     //Import MemberDatabase
     std::vector<member> importStack;
-    importDatabase(importStack);
+    importDataBase(importStack);
 
 
 //change statuses if imported
@@ -1568,6 +1585,10 @@ void approvedImport()
             importStack[head].setChange(0);
         }
         if (importStack[head].getStatus() == 7 && importStack[head].getChange() == 2)
+        {
+            importStack[head].setChange(0);
+        }
+        if (importStack[head].getStatus() == 9 && importStack[head].getChange() == 2)
         {
             importStack[head].setChange(0);
         }
@@ -1757,6 +1778,64 @@ EXIT_LOOP:
     callExportDB(importStack,1);
 }
 
+//Generic menu system, tell how many options you have and pass whole string seperatted by commas
+int menuSystem(int option, std::string x)
+{
+    //while loop
+    std::string input = "";
+    std::string word = "";
+    int loopCount = 0;
+    int selection = 0;
+    bool match = false;
+    while (match == false)
+    {
+        std::stringstream ss(x);
+        int loopCount = 0;
+        //print the title line
+        std::getline(ss, word, ',');
+        std::cout << "\n" << word;
+        //break string x up using stringstream and print it out
+        while (std::getline(ss, word, ','))
+        {
+            std::cout << "\n    " << std::left << std::setw(30) << word;
+            //getline the number then cout it
+            if (option == 1 && word != "BACK")
+            {
+                std::getline(ss, word, ',');
+                std::cout << std::setprecision(2) << word;
+            }
+        }
+        loopCount = 0;
+        //get user input
+        input = getUserInput();
+        std::stringstream ss2(x);
+        //scrap the title line
+        std::getline(ss2, word, ',');
+        //break string x up again using stringstream and check if input matches any
+        while (std::getline(ss2, word, ','))
+        {
+
+            if (input == word)
+            {
+                match = true;
+                selection = loopCount;
+            }
+            loopCount++;
+            //getline to remove the number
+            if (option == 1)
+            {
+                std::getline(ss2, word, ',');
+            }
+        }
+        if (match == false)
+        {
+            invalidSelection();
+        }
+    }
+    std::cout << "\n.\n.\n.\n.\n.\n.\n.\n.\n.\n.\n.\n.";
+    return selection;
+}
+
 void databaseCSV()
 {
     //imports database then uses callexport to export to root as csv
@@ -1841,7 +1920,7 @@ void reportByStatus()
     } 
     catch (...)
     {
-        std::cout << "\n!!INVALID DATE!!\n\n"
+        std::cout << "\n!!INVALID DATE!!\n\n";
         goto REPORT_BY_STATUS_RESTART;
     }
     dateb = std::to_string(monthb) + "/" + std::to_string(dayb) + "/" + std::to_string(yearb);
@@ -1851,10 +1930,14 @@ void reportByStatus()
     }
     catch (...)
     {
-        std::cout << "\n!!INVALID DATE!!\n\n"
+        std::cout << "\n!!INVALID DATE!!\n\n";
         goto REPORT_BY_STATUS_RESTART;
     }
     std::fstream filex;
+    filex.open(".\\NumberReport.csv", std::ios::out | std::ios::trunc);
+    filex << "Date,Guests" << std::endl;
+    filex.flush();
+    filex.close();
     filex.open(".\\NumberReport.csv", std::ios::out | std::ios::app);
     head2 = seriala;
     //loop for counting all on those days
@@ -1868,7 +1951,7 @@ void reportByStatus()
             {
                 if (importStack[head].getDatefrom() <= head2 && importStack[head].getDateTo() >= head2)
                 {
-                    if (importStack[head].getStatus == 5 || importStack[head].getStatus == 6 || importStack[head].getStatus == 9)
+                    if (importStack[head].getStatus() == 5 || importStack[head].getStatus() == 6 || importStack[head].getStatus() == 9)
                     {
                         count++;
                     }
@@ -1890,64 +1973,6 @@ void reportByStatus()
     filex.flush();
     filex.close();
     std::cout << "\nREPORT COMPLETE\n";
-}
-
-//Generic menu system, tell how many options you have and pass whole string seperatted by commas
-int menuSystem(int option, std::string x)
-{
-    //while loop
-    std::string input = "";
-    std::string word = "";
-    int loopCount = 0;
-    int selection = 0;
-    bool match = false;
-    while (match == false)
-    {
-        std::stringstream ss(x);
-        int loopCount = 0;
-        //print the title line
-        std::getline(ss, word, ',');
-        std::cout << "\n" << word;
-        //break string x up using stringstream and print it out
-        while (std::getline(ss, word, ','))
-        {
-            std::cout << "\n    " << std::left << std::setw(30) << word;
-            //getline the number then cout it
-            if (option == 1 && word != "BACK")
-            {
-                std::getline(ss, word, ',');
-                std::cout << std:: setprecision(2)<< word;
-            }
-        }
-        loopCount = 0;
-        //get user input
-        input = getUserInput();
-        std::stringstream ss2(x);
-        //scrap the title line
-        std::getline(ss2, word, ',');
-        //break string x up again using stringstream and check if input matches any
-        while (std::getline(ss2, word, ','))
-        {
-
-            if (input == word)
-            {
-                match = true;
-                selection = loopCount;
-            }
-            loopCount++;
-            //getline to remove the number
-            if (option == 1)
-            {
-                std::getline(ss2, word, ',');
-            }
-        }
-        if (match == false)
-        {
-            invalidSelection();
-        }
-    }
-    std::cout << "\n.\n.\n.\n.\n.\n.\n.\n.\n.\n.\n.\n.";
-    return selection;
 }
 
 void memberSearch()
@@ -2055,7 +2080,7 @@ SEARCH_BACK:
     breakout = 0;
     while (breakout == 0)
     {
-        std::string menuOptions = "MEMBER INFORMATION,NAME," + importStack[selectedHead].getName() + ",PRICE," + std::to_string(importStack[selectedHead].getPrice()) + ",DATE FROM," + std::to_string(fromMonth) + "/" + std::to_string(fromDay) + "/" + std::to_string(fromYear) + ",DATE TO," + std::to_string(toMonth) + "/" + std::to_string(toDay) + "/" + std::to_string(toYear) + ",DATE SUBMITTED," + std::to_string(subMonth) + "/" + std::to_string(subDay) + "/" + std::to_string(subYear) + ",PHONE," + importStack[selectedHead].getPhone() + ",EMAIL," + importStack[selectedHead].getEmail() + ",PROPERTY," + importStack[selectedHead].getProperty() + ",PROPERTY ID," + std::to_string(importStack[selectedHead].getpropertyID()) + ",AGENCY," + importStack[selectedHead].getAgency() + ",BEDROOMS," + std::to_string(importStack[selectedHead].getBedrooms()) + ",MEMBER STATUS," + statuses[importStack[selectedHead].getStatus()] + ",CHANGED," + std::to_string(importStack[selectedHead].getChange()) + ",SAVE,SAVES ONLY,SEARCH,BACK TO SEARCH,EXPORT,SAVES AND ADDS TO NSIMPORT,DELETE,DELETES CURRENT MEMBER,DELETE FAMILY,DELETES WHOLE FAMILY WITH CURRENT MEMBER NUMBER,BILLING,CONFIRM OR OVERIDE BILLING,COMMENTS," + importStack[selectedhead].getComments() + ",QUIT";
+        std::string menuOptions = "MEMBER INFORMATION,NAME," + importStack[selectedHead].getName() + ",PRICE," + std::to_string(importStack[selectedHead].getPrice()) + ",DATE FROM," + std::to_string(fromMonth) + "/" + std::to_string(fromDay) + "/" + std::to_string(fromYear) + ",DATE TO," + std::to_string(toMonth) + "/" + std::to_string(toDay) + "/" + std::to_string(toYear) + ",DATE SUBMITTED," + std::to_string(subMonth) + "/" + std::to_string(subDay) + "/" + std::to_string(subYear) + ",PHONE," + importStack[selectedHead].getPhone() + ",EMAIL," + importStack[selectedHead].getEmail() + ",PROPERTY," + importStack[selectedHead].getProperty() + ",PROPERTY ID," + std::to_string(importStack[selectedHead].getpropertyID()) + ",AGENCY," + importStack[selectedHead].getAgency() + ",BEDROOMS," + std::to_string(importStack[selectedHead].getBedrooms()) + ",MEMBER STATUS," + statuses[importStack[selectedHead].getStatus()] + ",CHANGED," + std::to_string(importStack[selectedHead].getChange()) + ",SAVE,SAVES ONLY,SEARCH,BACK TO SEARCH,EXPORT,SAVES AND ADDS TO NSIMPORT,DELETE,DELETES CURRENT MEMBER,DELETE FAMILY,DELETES WHOLE FAMILY WITH CURRENT MEMBER NUMBER,BILLING,CONFIRM OR OVERIDE BILLING,COMMENTS," + importStack[selectedHead].getComment() + ",QUIT";
         selection = menuSystem(1, menuOptions);
         switch (selection)
         {
@@ -2259,8 +2284,8 @@ SEARCH_BACK:
         }
         case 19:
             //add comment approval here
-            std::cout << "\n" + importStack[head].getName() + "\n" + importStack[head].getProperty() + "\nPLEASE ENTER COMMENT";
-            importStack[head].setComment(getUserInput());
+            std::cout << "\n" + importStack[selectedHead].getName() + "\n" + importStack[selectedHead].getProperty() + "\nPLEASE ENTER COMMENT";
+            importStack[selectedHead].setComment(getUserInput());
             break;
         case 20:
                 //QUIT
@@ -2327,7 +2352,7 @@ void vexport()
     while (breakout == 0)
     {
         updateNumbers();
-        std::string menuOptions = "EXPORT MENU,NORTHSTAR," + std::to_string(nsImportNum) + ",NORTHSTAR IMPORTED," + std::to_string(nsImportedNum) + ",EMAIL," + std::to_string(emailGenNum) + ",EMAIL SENT," + std::to_string(emailSentNum) + ",CARDS PRINTED," + "NUMBER HERE" + ",BACK";
+        std::string menuOptions = "EXPORT MENU,NORTHSTAR," + std::to_string(nsImportNum) + ",NORTHSTAR IMPORTED," + std::to_string(nsImportedNum) + ",EMAIL," + std::to_string(emailGenNum) + ",EMAIL SENT," + std::to_string(emailSentNum) + ",CARDS PRINTED," + std::to_string(cardnum) +",BACK";
         int selection = menuSystem(1, menuOptions);
         switch (selection)
         {
